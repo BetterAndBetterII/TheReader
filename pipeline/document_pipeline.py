@@ -4,8 +4,15 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from typing import Optional
 from django.utils import timezone
+from django.conf import settings
+import uuid
+import os
+import shutil
+import logging
+from api.models import Task, Document, TextSection
+from prepdocs.config import Section, Page, FileType
 
-from api.models import Task
+logger = logging.getLogger(__name__)
 
 class DocumentPipeline:
     def __init__(self, max_workers=3):
@@ -41,21 +48,30 @@ class DocumentPipeline:
     def _process_document(self, task: Task):
         """处理单个文档的流水线逻辑"""
         try:
-            # 预处理阶段
+            
+            # ------------------预处理阶段------------------
             self._update_task_status(task, Task.Status.PREPROCESSING, 25)
-            # TODO: 实现预处理逻辑
-            
-            # 文本提取阶段
+            # 实现预处理逻辑
+            section = self.stage_1(task.file_path, task.title)
+            logger.debug(f"预处理阶段完成: {section}")
+
+            # ------------------文本提取阶段------------------
             self._update_task_status(task, Task.Status.EXTRACTING, 50)
-            # TODO: 实现文本提取逻辑
-            
-            # 翻译阶段
+            # 实现预处理逻辑
+            english_section = self.stage_2(section)
+            logger.debug(f"文本提取阶段完成: {english_section}")
+
+            # ------------------翻译阶段------------------
             self._update_task_status(task, Task.Status.TRANSLATING, 75)
-            # TODO: 实现翻译逻辑
-            
+            # 实现翻译逻辑
+            chinese_section = self.stage_3(english_section)
+            logger.debug(f"翻译阶段完成: {chinese_section}")
+
+            # ------------------保存阶段------------------
+            document = self.stage_4(english_section, chinese_section, task.file_path, task)
             # 完成
             self._update_task_status(task, Task.Status.COMPLETED, 100)
-            
+            return document
         except Exception as e:
             self._update_task_status(task, Task.Status.FAILED, error_message=str(e))
             raise
@@ -81,3 +97,77 @@ class DocumentPipeline:
         print("Document Pipeline shutdown complete")
 
     # 具体实现
+    def stage_1(self, file_path: str, title: str) -> Section:
+        """
+        预处理阶段，将文档转换为图片，或文本
+        """
+        logger.debug(f"Processing {file_path} with title {title}")
+        from prepdocs.parse_page import DocsIngester, Section
+
+        ingester = DocsIngester()
+        return ingester.process_document(file_path, title)
+
+    def stage_2(self, section: Section):
+        """
+        文本提取阶段，将图片转换为文本：使用ClientPool来调用GeminiClient的chat_with_image方法
+        """
+        from prepdocs.parse_images import parse_images
+        logger.debug(f"Processing {section} with title {section.title}")
+
+
+        return parse_images(section)
+
+    def stage_3(self, section: Section):
+        """
+        翻译阶段，将文本翻译为中文
+        """
+        from prepdocs.translate import translate_text
+        logger.debug(f"Translating {section} with title {section.title}")
+
+        return translate_text(section, 'Simplified Chinese')
+
+    def stage_4(self, english_section: Section, chinese_section: Section, original_file_path: str, task: Task):
+        """
+        保存阶段，将文本保存到数据库
+        """
+        logger.debug(f"Saving {english_section} with title {english_section.title}")
+        # 保存文档到persist目录
+        persist_dir = settings.PERSIST_DIR
+        persist_dir.mkdir(parents=True, exist_ok=True)
+        # 生成唯一id
+        document_id = str(uuid.uuid4())
+        os.makedirs(persist_dir / document_id, exist_ok=True)
+        os.makedirs(persist_dir / document_id / "en", exist_ok=True)
+        os.makedirs(persist_dir / document_id / "zh", exist_ok=True)
+        # 使用 shutil.move 替代 os.rename
+        persist_file_path = persist_dir / document_id / task.title
+        shutil.move(original_file_path, persist_file_path)
+        for i, page in enumerate(english_section.pages):
+            english_file_path = persist_dir / document_id / "en" / f"{document_id}_index_{i}.md"
+            with open(english_file_path, 'w', encoding='utf-8') as f:
+                f.write(page.content)
+        for i, page in enumerate(chinese_section.pages):
+            chinese_file_path = persist_dir / document_id / "zh" / f"{document_id}_index_{i}.md"
+            with open(chinese_file_path, 'w', encoding='utf-8') as f:
+                f.write(page.content)
+        # ------------------保存到数据库------------------
+        document = Document.objects.create(
+            title=english_section.title,
+            linked_file_path=persist_dir / document_id,
+            linked_task=task
+        )
+        logger.debug(f"Creating document {document} with title {document.title}")
+        english_text_section = TextSection.objects.create(
+            title=english_section.title,
+            section=english_section.to_dict(),
+            linked_file_path=persist_file_path
+        )
+        chinese_text_section = TextSection.objects.create(
+            title=chinese_section.title,
+            section=chinese_section.to_dict(),
+            linked_file_path=persist_file_path
+        )
+        document.sections.add(english_text_section, chinese_text_section)
+        document.save()
+        logger.debug(f"Document {document} with title {document.title} created")
+        return document

@@ -5,6 +5,7 @@ import os
 from PIL import Image
 from google import generativeai as genai
 from google.ai import generativelanguage as glm
+from typing import Literal
 
 
 class GeminiClient:
@@ -46,7 +47,7 @@ class GeminiClient:
                 'error': str(e)
             }
 
-    def chat_with_image(self, message, image_data, image_type="base64"):
+    def chat_with_image(self, message, image_data, image_type: Literal["base64", "path"]="base64"):
         """
         图片+文本对话功能
         :param message: 用户输入的文本消息
@@ -83,7 +84,7 @@ class GeminiClient:
                     image.load()
                 except Exception as e:
                     return {'error': f'图片解析错误: {str(e)}，请确保提供了有效的图片数据'}
-            else:  # path
+            elif image_type == "path":  # path
                 try:
                     image = Image.open(image_data)
                     if image.format not in ['JPEG', 'PNG', 'GIF']:
@@ -92,6 +93,8 @@ class GeminiClient:
                     image.load()
                 except Exception as e:
                     return {'error': f'图片文件打开错误: {str(e)}'}
+            else:
+                return {'error': f'不支持的图片类型: {image_type}，请使用 base64 或 path 类型'}
 
             # 发送图片和文本到模型
             response = self.vision_model.generate_content([message, image])

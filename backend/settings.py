@@ -119,6 +119,7 @@ LOGGING = {
     },
 }
 
+PERSIST_DIR = BASE_DIR / 'persist'
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/

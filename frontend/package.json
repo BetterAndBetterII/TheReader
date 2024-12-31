@@ -4,10 +4,19 @@
   "private": true,
   "proxy": "http://localhost:8888",
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^6.3.0",
+    "@mui/material": "^6.3.0",
+    "@react-pdf-viewer/core": "^3.12.0",
+    "@react-pdf-viewer/default-layout": "^3.12.0",
+    "@react-pdf-viewer/search": "^3.12.0",
+    "@react-pdf-viewer/zoom": "^3.12.0",
     "axios": "^1.7.9",
     "cra-template": "1.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-dropzone": "^14.3.5",
     "react-pdf": "^9.2.1",
     "react-router-dom": "^7.1.1",
     "react-scripts": "5.0.1",
@@ -38,6 +47,6 @@
     ]
   },
   "devDependencies": {
-    "pdfjs-dist": "^4.9.155"
+    "pdfjs-dist": "^3.4.120"
   }
 }

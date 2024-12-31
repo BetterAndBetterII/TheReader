@@ -1,0 +1,31 @@
+.document-uploader {
+    padding: 24px;
+    background: #fff;
+    border-radius: 8px;
+}
+
+.ant-upload-drag {
+    border: 2px dashed #d9d9d9;
+    border-radius: 8px;
+    background: #fafafa;
+    transition: all 0.3s;
+}
+
+.ant-upload-drag:hover {
+    border-color: #1890ff;
+}
+
+.progress-card {
+    margin-top: 16px;
+    border-radius: 4px;
+}
+
+.progress-card p {
+    margin-bottom: 8px;
+}
+
+.processing-text {
+    color: #1890ff;
+    margin-top: 8px;
+    font-size: 12px;
+} 

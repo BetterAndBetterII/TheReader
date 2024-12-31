@@ -1,0 +1,40 @@
+.document-list-container {
+    padding: 24px;
+}
+
+.document-card {
+    margin-bottom: 16px;
+    transition: all 0.3s;
+}
+
+.document-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.document-detail {
+    padding: 16px;
+}
+
+.document-pages {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.page-preview {
+    text-align: center;
+}
+
+.page-preview img {
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.page-preview p {
+    margin-top: 8px;
+    color: #666;
+} 

@@ -48,3 +48,32 @@ class Task(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+class TextSection(models.Model):
+    linked_file_path = models.CharField(max_length=1000, help_text='关联的文件路径')
+    title = models.CharField(max_length=255, help_text='文本标题')
+    # Section_obj_json
+    section = models.JSONField(default=dict, help_text='Section对象')
+    created_at = models.DateTimeField(auto_now_add=True, help_text='创建时间')
+    updated_at = models.DateTimeField(auto_now=True, help_text='最后更新时间')
+
+    def __str__(self):
+        return f"{self.title} - {self.task.title} - {self.linked_file_path}"
+
+    class Meta:
+        ordering = ['-created_at']
+
+class Document(models.Model):
+    title = models.CharField(max_length=255, help_text='文档标题')
+    sections = models.ManyToManyField(TextSection, related_name='documents')
+    created_at = models.DateTimeField(auto_now_add=True, help_text='创建时间')
+    updated_at = models.DateTimeField(auto_now=True, help_text='最后更新时间')
+
+    linked_file_path = models.CharField(max_length=1000, help_text='关联的文件路径')
+    linked_task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='documents')
+
+    def __str__(self):
+        return f"{self.title} - {self.linked_task.title} - {self.linked_file_path}"
+
+    class Meta:
+        ordering = ['-created_at']

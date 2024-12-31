@@ -2,6 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
+  "proxy": "http://localhost:8888",
   "dependencies": {
     "axios": "^1.7.9",
     "cra-template": "1.2.0",

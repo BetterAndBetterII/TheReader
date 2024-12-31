@@ -4,17 +4,28 @@ import os
 
 from PIL import Image
 from google import generativeai as genai
+from google.ai import generativelanguage as glm
 
 
 class GeminiClient:
-    def __init__(self):
-        # 初始化Gemini API与base_url
-        genai.configure(api_key=os.getenv('GOOGLE_API_KEY'), transport='rest', client_options={
-            'api_endpoint': os.getenv('GOOGLE_API_BASE'),
-        })
-        # 获取模型
+    def __init__(self, api_key=None, base_url=None):
+        # 初始化Gemini API配置
+        self.api_key = api_key if api_key else os.getenv('GEMINI_API_KEY')
+        self.base_url = base_url if base_url else os.getenv('GEMINI_API_BASE')
+        
+        # 创建模型配置
+        client = glm.GenerativeServiceClient(
+            transport='rest',
+            client_options={
+                'api_key': self.api_key,
+                'api_endpoint': self.base_url
+            }
+        )
+        # 使用局部配置创建模型实例
         self.text_model = genai.GenerativeModel('gemini-1.5-flash-latest')
+        self.text_model._client = client
         self.vision_model = genai.GenerativeModel('gemini-1.5-flash-latest')
+        self.vision_model._client = client
 
     def chat_with_text(self, message) -> dict:
         """

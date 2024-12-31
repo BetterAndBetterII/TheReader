@@ -1,23 +1,14 @@
-import logo from './logo.svg';
+import React from 'react';
 import './App.css';
+import PDFReader from './components/PDFReader';
 
 function App() {
+  // 使用本地PDF文件进行测试
+  const pdfUrl = "/sample.pdf";  // 这个文件需要放在public目录下
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <PDFReader url={pdfUrl} />
     </div>
   );
 }

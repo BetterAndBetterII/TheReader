@@ -13,6 +13,7 @@ const ReaderPage = ({ documentId }) => {
 
   useEffect(() => {
     const fetchPdfUrl = async () => {
+      if (!documentId) return;
       try {
         const response = await fetch(`/api/documents/view/${documentId}.pdf`);
         if (response.ok) {
@@ -60,7 +61,7 @@ const ReaderPage = ({ documentId }) => {
   };
 
   if (!pdfUrl) {
-    return <div className="no-pdf">暂无PDF文件，请先在文档管理中选中PDF文件</div>;
+    return <div className="no-pdf" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>暂无PDF文件，请先在文档管理中选中PDF文件</div>;
   }
 
   const currentPageContentChanged = (pageContent) => {

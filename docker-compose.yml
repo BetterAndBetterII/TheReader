@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./persist:/app/persist
+      - ./db.sqlite3:/app/db.sqlite3
+    environment:
+      - DEBUG=1
+    restart: unless-stopped 
+    

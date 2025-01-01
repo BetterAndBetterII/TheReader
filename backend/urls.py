@@ -16,8 +16,23 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import TemplateView
+from django.views.static import serve
+from django.urls import re_path
+from django.conf import settings
+import os
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
+    # 静态路由，前端静态文件
+    re_path(r'^static/(?P<path>.*)$', serve, {
+        'document_root': os.path.join(settings.BASE_DIR, 'build/static'),
+    }),
+    # 处理根目录下的静态文件
+    re_path(r'^(?P<path>.*\.(js|css|json|ico))$', serve, {
+        'document_root': os.path.join(settings.BASE_DIR, 'build'),
+    }),
+    # 所有其他路由都返回前端入口文件
+    re_path(r'^.*$', TemplateView.as_view(template_name='index.html')),
 ]

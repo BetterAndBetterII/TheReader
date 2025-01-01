@@ -25,8 +25,8 @@ SECRET_KEY = 'django-insecure-x$5#vj&-v1_w(c$-8yr5lx3-sli5+1ph=@%z=1^nm9(u$)+@6o
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+# 允许所有主机访问
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': BASE_DIR / 'persist' / 'db.sqlite3',
     }
 }
 
@@ -151,11 +151,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 GLOBAL_ENV = {}
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50MB
-
-# 应用初始化时会调用 setup_cache.make_env() 来填充这个字典
-
-# 允许所有主机访问
-ALLOWED_HOSTS = ['*']
 
 # 设置CORS
 CORS_ALLOW_ALL_ORIGINS = True

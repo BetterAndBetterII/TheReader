@@ -22,13 +22,14 @@ RUN apt-get update && apt-get install -y \
 
 # 复制项目文件
 COPY requirements.txt .
+
+# 安装Python依赖
+RUN pip install --no-cache-dir -r requirements.txt
+
 COPY . .
 
 # 从前端构建阶段复制构建文件
 COPY --from=frontend-builder /build /app/build
-
-# 安装Python依赖
-RUN pip install --no-cache-dir -r requirements.txt
 
 # 创建持久化目录
 RUN mkdir -p /app/persist
@@ -46,4 +47,5 @@ EXPOSE 8000
 RUN python manage.py migrate
 
 # 启动命令
+ENTRYPOINT ["/bin/bash", "docker-entrypoint.sh"]
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

@@ -9,6 +9,7 @@ const ReaderPage = ({ documentId }) => {
   const [isDraggingHorizontal, setIsDraggingHorizontal] = useState(false);
   const [readerWidth, setReaderWidth] = useState(65); // 默认65%的宽度
   const [pdfUrl, setPdfUrl] = useState(null);
+  const [pageContent, setPageContent] = useState('');
 
   useEffect(() => {
     const fetchPdfUrl = async () => {
@@ -62,6 +63,10 @@ const ReaderPage = ({ documentId }) => {
     return <div className="no-pdf">暂无PDF文件，请先在文档管理中选中PDF文件</div>;
   }
 
+  const currentPageContentChanged = (pageContent) => {
+    setPageContent(pageContent);
+  };
+
   return (
     <div className="reader-page" 
         onMouseMove={handleHorizontalDrag}
@@ -75,6 +80,7 @@ const ReaderPage = ({ documentId }) => {
           url={pdfUrl}
           onPageChange={handlePageChange}
           documentId={documentId}
+          currentPageContentChanged={currentPageContentChanged}
         />
       </div>
       <div 
@@ -85,7 +91,7 @@ const ReaderPage = ({ documentId }) => {
         className="chat-section"
         style={{ width: `${100 - readerWidth}%`, height: '100%' }}
       >
-        <ChatBox documentId={documentId} currentPage={currentPage} />
+        <ChatBox pageContent={pageContent}/>
       </div>
     </div>
   );

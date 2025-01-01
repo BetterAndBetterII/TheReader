@@ -365,7 +365,7 @@ def get_collection(request, project_id, collection_id):
         collection = project.collections.get(id=collection_id)
         documents = collection.documents.all().order_by('-created_at')
         # 未完成的任务
-        processing_tasks = Task.objects.filter(collection_id=collection_id, status__in=[Task.Status.PENDING, Task.Status.PREPROCESSING, Task.Status.EXTRACTING, Task.Status.TRANSLATING])
+        processing_tasks = Task.objects.filter(collection_id=collection_id, status__in=[Task.Status.PENDING, Task.Status.PREPROCESSING, Task.Status.EXTRACTING, Task.Status.TRANSLATING, Task.Status.FAILED])
         processing_tasks_data = [{
             'id': task.id,
             'title': task.title,

@@ -12,7 +12,7 @@ import '@react-pdf-viewer/search/lib/styles/index.css';
 import '@react-pdf-viewer/zoom/lib/styles/index.css';
 import './PDFReader.css';
 
-const PDFReader = ({ url, onPageChange, documentId }) => {
+const PDFReader = ({ url, onPageChange, documentId, currentPageContentChanged }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isDraggingVertical, setIsDraggingVertical] = useState(false);
   const [viewerHeight, setViewerHeight] = useState(55); // 默认70%的高度
@@ -61,8 +61,8 @@ const PDFReader = ({ url, onPageChange, documentId }) => {
 
   return (
     <div className="pdf-reader-container"
-    onMouseMove={handleVerticalDrag}
-    onMouseUp={handleVerticalDragEnd}
+        onMouseMove={handleVerticalDrag}
+        onMouseUp={handleVerticalDragEnd}
     >
       <div 
         className="pdf-viewer-section"
@@ -86,13 +86,9 @@ const PDFReader = ({ url, onPageChange, documentId }) => {
       <div 
         className="resizer-vertical"
         onMouseDown={handleVerticalDragStart}
-        
       />
-      <div 
-        className="translate-section-container"
-        style={{ height: `${100 - viewerHeight}%` }}
-      >
-        <TranslateSection documentId={documentId} currentPage={currentPage} />
+      <div className="translate-section-container">
+        <TranslateSection documentId={documentId} currentPage={currentPage} currentPageContentChanged={currentPageContentChanged} />
       </div>
     </div>
   );

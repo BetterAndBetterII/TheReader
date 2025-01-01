@@ -107,18 +107,6 @@ const DocumentUploader = ({ onUploadSuccess, collectionId }) => {
                 </Typography>
             </Paper>
 
-            {/* 显示上传进度 */}
-            {Object.entries(uploadProgress).map(([fileName, progress]) => (
-                <Box key={fileName} sx={{ mt: 2, p: 2, bgcolor: 'background.paper' }}>
-                    <Typography variant="body2" gutterBottom>{fileName}</Typography>
-                    <LinearProgress 
-                        variant="determinate" 
-                        value={progress.percent}
-                        color={progress.status === 'error' ? 'error' : 'primary'}
-                    />
-                </Box>
-            ))}
-
             <Snackbar
                 open={snackbar.open}
                 autoHideDuration={6000}

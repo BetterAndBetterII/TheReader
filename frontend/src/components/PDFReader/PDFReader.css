@@ -45,10 +45,8 @@
 }
 
 .translate-section-container {
+  overflow: hidden;
   flex: 1;
-  overflow: auto;
-  min-height: 20%;
-  max-height: 80%;
 }
 
 /* 确保 PDF 查看器填满容器 */

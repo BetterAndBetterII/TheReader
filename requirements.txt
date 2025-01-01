@@ -1,0 +1,8 @@
+Django~=5.1.4
+asgiref~=3.8.1
+python-dotenv~=1.0.1
+pillow~=11.0.0
+google~=3.0.0
+protobuf~=5.29.2
+docx2pdf~=0.1.8
+pdf2image~=1.17.0

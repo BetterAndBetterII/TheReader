@@ -74,6 +74,7 @@ class DocumentPipeline:
             self._update_task_status(task, Task.Status.COMPLETED, 100)
             return document
         except Exception as e:
+            logger.error(f"处理文档失败: {str(e)}")
             self._update_task_status(task, Task.Status.FAILED, error_message=str(e))
             raise
 
@@ -114,7 +115,6 @@ class DocumentPipeline:
         """
         from prepdocs.parse_images import parse_images
         logger.debug(f"Processing {section} with title {section.title}")
-
 
         return parse_images(section)
 

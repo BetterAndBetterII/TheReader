@@ -56,24 +56,25 @@ const DocumentList = ({updateTime, onViewDocument, collectionId, projectId}) => 
 
     // 轮询处理中的文档状态
     const startPolling = (processingTasks) => {
+        if (processingTasks.length === 0) return;
+
+        // 单独检查每个任务的状态
         processingTasks.forEach(task => {
             const checkStatus = async () => {
                 try {
                     const response = await fetch(`/api/documents/status/${task.id}/`);
                     const data = await response.json();
-                    
-                    if (data.status !== 'PROCESSING') {
-                        // 如果任务处理完成或失败，更新任务列表
-                        setTimeout(fetchDocuments, 3000);
-                    } else {
-                        // 继续轮询
-                        setTimeout(checkStatus, 3000);
+                    if (data.status === 'PENDING' || data.status === 'PREPROCESSING' || data.status === 'EXTRACTING' || data.status === 'TRANSLATING') {
+                        setTimeout(checkStatus, 3000 * processingTasks.length);
+                    } else if (data.status === 'COMPLETED') {
+                        fetchDocuments();
                     }
+                    // 更改任务状态
+                    setProcessingTasks(prevTasks => prevTasks.map(t => t.id === task.id ? { ...t, status: data.status, progress: data.progress, error_message: data.error_message } : t));
                 } catch (error) {
                     console.error('检查任务状态失败:', error);
                 }
             };
-            
             checkStatus();
         });
     };
@@ -142,9 +143,33 @@ const DocumentList = ({updateTime, onViewDocument, collectionId, projectId}) => 
                     color: 'error.main',
                     text: '处理失败'
                 };
-            case 'PROCESSING':
+            case 'PENDING':
                 return { 
                     icon: <HourglassEmpty color="info" />, 
+                    color: 'info.main',
+                    text: '等待中'
+                };
+            case 'PREPROCESSING':
+                return { 
+                    icon: <HourglassEmpty color="info" />, 
+                    color: 'info.main',
+                    text: '预处理中'
+                };
+            case 'EXTRACTING':
+                return { 
+                    icon: <HourglassEmpty color="info" />, 
+                    color: 'info.main',
+                    text: '提取中'
+                };
+            case 'TRANSLATING':
+                return { 
+                    icon: <HourglassEmpty color="info" />, 
+                    color: 'info.main',
+                    text: '翻译中'
+                };
+            case 'PROCESSING':
+                return { 
+                    icon: <CircularProgress size={20} />, 
                     color: 'info.main',
                     text: '处理中'
                 };
@@ -215,9 +240,20 @@ const DocumentList = ({updateTime, onViewDocument, collectionId, projectId}) => 
                                 <Box sx={{ width: '100%', mt: 1 }}>
                                     <LinearProgress variant="determinate" value={task.progress} />
                                 </Box>
-                                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>  
-                                    状态: {task.status}
-                                </Typography>
+                                <Box display="flex" alignItems="center" mb={1} mt={1}>
+                                    {getStatusInfo(task.status).icon}
+                                    <Typography 
+                                        variant="body2" 
+                                        sx={{ ml: 1, color: getStatusInfo(task.status).color }}
+                                    >
+                                        {getStatusInfo(task.status).text}
+                                    </Typography>
+                                </Box>
+                                {task.error_message && (
+                                    <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+                                        错误信息: {task.error_message}
+                                    </Typography>
+                                )}
                                 <Box sx={{ position: 'absolute', bottom: 5, right: 5 }}>
                                     <IconButton 
                                         onClick={() => handleRemoveDocument(null, task.id)}
@@ -365,7 +401,7 @@ const DocumentList = ({updateTime, onViewDocument, collectionId, projectId}) => 
                     </>
                 )}
             </Dialog>
-            <div>
+            <div style={{ marginTop: '10px' }}>
                 <Typography variant="body1" gutterBottom>
                     更新时间: {updateTime}
                 </Typography>

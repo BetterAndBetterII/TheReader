@@ -3,12 +3,13 @@ import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import './ChatBox.css';
 
-const ChatBox = () => {
+const ChatBox = ({ pageContent }) => {
     const [input, setInput] = useState('');
     const [response, setResponse] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [imageData, setImageData] = useState(null);
     const [chatHistory, setChatHistory] = useState([]);
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
     const handlePaste = useCallback(async (e) => {
         const items = e.clipboardData?.items;
@@ -37,15 +38,22 @@ const ChatBox = () => {
         // 添加用户消息到历史记录
         const userMessage = {
             role: 'user',
-            content: [{
-                "type": "text",
-                "text": input.trim()
-            }].concat(imageData ? [{
-                "type": "image_url",
-                "image_url": {
-                    "url": `data:image/jpeg;base64,${imageData}`
-                }
-            }] : []),
+            content: [
+                {
+                    "type": "text",
+                    "text": input.trim()
+                },
+                ...(imageData ? [{
+                    "type": "image_url",
+                    "image_url": {
+                        "url": `data:image/jpeg;base64,${imageData}`
+                    }
+                }] : []),
+                ...(pageContent ? [{
+                    "type": "text",
+                    "text": pageContent
+                }] : [])
+            ],
             timestamp: new Date().toISOString(),
         };
         
@@ -60,10 +68,11 @@ const ChatBox = () => {
                 content: msg.content
             }));
 
+            const fullContent = `你需要根据历史聊天记录回答我的问题。务必使用与课程教案相同的语言回答我。<|历史记录|>\n${messages.map(msg => `<|${msg.role}|>\n${msg.content.map(item => item.text || "").join('')}`).join('\n')}\n<|课程教案相关内容：|>\n${pageContent}\n<|当前问题|>\n${input}`;
+
             const result = await axios.post('/api/gemini_chat_image', {
-                prompt: input,
+                prompt: fullContent,
                 image_data: imageData,
-                chat_history: messages // 发送完整的对话历史
             });
 
             const assistantMessage = {
@@ -87,8 +96,29 @@ const ChatBox = () => {
         }
     };
 
+    const handleClearHistory = () => {
+        setShowConfirmDialog(true);
+    };
+
+    const confirmClear = () => {
+        setChatHistory([]);
+        setResponse('');
+        setShowConfirmDialog(false);
+    };
+
     return (
         <div className="chat-container">
+            {showConfirmDialog && (
+                <div className="confirm-dialog">
+                    <div className="confirm-dialog-content">
+                        <p>确定要清空所有聊天记录吗？</p>
+                        <div className="confirm-dialog-buttons">
+                            <button onClick={confirmClear} className="confirm-yes">确定</button>
+                            <button onClick={() => setShowConfirmDialog(false)} className="confirm-no">取消</button>
+                        </div>
+                    </div>
+                </div>
+            )}
             <div className="chat-history">
                 {chatHistory.map((message, index) => (
                     <div 
@@ -99,7 +129,7 @@ const ChatBox = () => {
                             <img src={item.image_url.url} alt="已粘贴的图片" style={{ maxWidth: '100px', maxHeight: '100px' }} />
                         </div> : null)}
                         {message.content.length > 0 && <div className={`message-content markdown-body ${message.role === 'user' ? 'user-message-content' : 'assistant-message-content'}`}> 
-                            {message.role === 'assistant' ? <ReactMarkdown>{message.content[0].text}</ReactMarkdown> : message.content.map(item => item.text || "").join('')}
+                            {message.role === 'assistant' ? <ReactMarkdown>{message.content[0].text}</ReactMarkdown> : message.content[0].text || ""}
                         </div>}
                     </div>
                 ))}
@@ -144,6 +174,13 @@ const ChatBox = () => {
                     disabled={isLoading}
                 >
                     发送
+                </button>
+                <button 
+                    type="button"
+                    onClick={handleClearHistory}
+                    className="clear-history-button"
+                >
+                    清空
                 </button>
             </form>
         </div>

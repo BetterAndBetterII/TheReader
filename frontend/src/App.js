@@ -30,7 +30,7 @@ function App() {
   }, [currentPage]);
 
   return (
-    <div className="App">
+    <div className="App" style={{ height: currentPage === 'reader' ? '100vh' : 'max-content' }}>
       <nav className="app-nav">
         <button 
           className={`nav-button ${currentPage === 'reader' ? 'active' : ''}`}

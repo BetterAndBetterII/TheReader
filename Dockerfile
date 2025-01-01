@@ -25,7 +25,7 @@ COPY requirements.txt .
 COPY . .
 
 # 从前端构建阶段复制构建文件
-COPY --from=frontend-builder /frontend/build /app/build
+COPY --from=frontend-builder /build /app/build
 
 # 安装Python依赖
 RUN pip install --no-cache-dir -r requirements.txt
@@ -42,6 +42,8 @@ RUN python manage.py collectstatic --noinput
 
 # 暴露端口
 EXPOSE 8000
+
+RUN python manage.py migrate
 
 # 启动命令
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

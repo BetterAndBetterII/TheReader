@@ -8,3 +8,5 @@
 .env
 db.sqlite3
 persist/
+
+*/node_modules/

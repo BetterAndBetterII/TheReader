@@ -1,5 +1,11 @@
 .document-list-container {
     padding: 24px;
+    max-height: 50vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
 }
 
 .document-card {

@@ -1,0 +1,210 @@
+.translate-section {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  max-width: 100%;
+  margin: 5px auto;
+  height: calc(100% - 120px);
+  display: flex;
+  flex-direction: column;
+}
+
+.translate-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eee;
+  flex-shrink: 0;
+}
+
+.translate-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.button-group {
+  display: flex;
+  gap: 8px;
+}
+
+.translate-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 18px;
+}
+
+.language-toggle,
+.format-toggle {
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  background-color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.language-toggle:hover,
+.format-toggle:hover {
+  background-color: #f5f5f5;
+}
+
+.language-toggle.chinese {
+  color: #1890ff;
+  border-color: #1890ff;
+}
+
+.language-toggle.english {
+  color: #52c41a;
+  border-color: #52c41a;
+}
+
+.format-toggle.formatted {
+  color: #722ed1;
+  border-color: #722ed1;
+}
+
+.format-toggle.raw {
+  color: #fa8c16;
+  border-color: #fa8c16;
+}
+
+.page-indicator {
+  color: #666;
+  font-size: 14px;
+}
+
+.translate-content {
+  flex: 1;
+  overflow-y: auto;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  padding: 16px;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+  color: #666;
+}
+
+.translation-text {
+  line-height: 1.6;
+  color: #333;
+  font-size: 14px;
+}
+
+.raw-text {
+  font-family: Consolas, Monaco, 'Andale Mono', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0;
+  padding: 0;
+}
+
+/* Markdown 样式调整 */
+.translation-text h1 {
+  font-size: 1.5em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.translation-text h2 {
+  font-size: 1.3em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.translation-text h3 {
+  font-size: 1.1em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.translation-text p {
+  margin: 0.5em 0;
+  font-size: 14px;
+}
+
+.translation-text ul, 
+.translation-text ol {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+}
+
+.translation-text li {
+  font-size: 14px;
+  margin: 0.2em 0;
+}
+
+.translation-text code {
+  background-color: #f0f0f0;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-size: 13px;
+  font-family: Consolas, Monaco, 'Andale Mono', monospace;
+}
+
+.translation-text pre {
+  background-color: #f5f5f5;
+  padding: 1em;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin: 0.5em 0;
+}
+
+.translation-text pre code {
+  background-color: transparent;
+  padding: 0;
+  font-size: 13px;
+}
+
+.translation-text blockquote {
+  margin: 0.5em 0;
+  padding-left: 1em;
+  border-left: 4px solid #ddd;
+  color: #666;
+}
+
+.translation-text img {
+  max-width: 100%;
+  height: auto;
+  margin: 0.5em 0;
+}
+
+.translation-text table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.5em 0;
+}
+
+.translation-text th,
+.translation-text td {
+  border: 1px solid #ddd;
+  padding: 0.5em;
+  font-size: 14px;
+}
+
+.translation-text th {
+  background-color: #f5f5f5;
+}
+
+/* KaTeX 数学公式样式调整 */
+.katex {
+  font-size: 1.1em;
+}
+
+.katex-display {
+  margin: 1em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5em 0;
+} 

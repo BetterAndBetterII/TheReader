@@ -1,41 +1,66 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
-import ChatBox from './components/ChatBox/ChatBox';
-import APIKeyForm from './components/APIKeyForm/APIKeyForm';
-import DocumentUploader from './components/DocumentUploader/DocumentUploader';
-import DocumentList from './components/DocumentList/DocumentList';
-import PDFReader from './components/PDFReader/PDFReader';
+import ReaderPage from './pages/ReaderPage/ReaderPage';
+import SettingsPage from './pages/SettingsPage/SettingsPage';
+import DocumentPage from './pages/DocumentPage/DocumentPage';
 
 function App() {
-  // 更新时间：12-31 15:00:00
-  const [updateTime, setUpdateTime] = useState(new Date().toLocaleString());
-  const [pdfUrl, setPdfUrl] = useState(null);
-  const handleUploadSuccess = () => {
-      setUpdateTime(new Date().toLocaleString());
-  };
-  const handleViewDocument = (docUrl) => {
+  const [documentId, setDocumentId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(() => {
+    const url = new URL(window.location.href);
+    const page = url.searchParams.get('page');
+    const documentId = url.searchParams.get('documentId');
+    setDocumentId(documentId);
+    return page || 'reader';
+  });
+
+  const handleViewDocument = (documentId) => {
     const currentUrlBase = new URL(window.location.href);
-    const url = currentUrlBase.origin;
-    setPdfUrl(`${url}${docUrl}`);
+    currentUrlBase.searchParams.set('documentId', documentId);
+    setCurrentPage('reader');
+    setDocumentId(documentId);
+    window.history.pushState({}, '', currentUrlBase.toString());
   };
-  const handlePageChange = (page) => {
-    console.log(`Page changed to: ${page}`);
-  };
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    // 修改为当前页面
+    url.searchParams.set('page', currentPage);
+    window.history.pushState({}, '', url.toString());
+  }, [currentPage]);
+
   return (
     <div className="App">
+      <nav className="app-nav">
+        <button 
+          className={`nav-button ${currentPage === 'reader' ? 'active' : ''}`}
+          onClick={() => setCurrentPage('reader')}
+        >
+          阅读器
+        </button>
+        <button 
+          className={`nav-button ${currentPage === 'upload' ? 'active' : ''}`}
+          onClick={() => setCurrentPage('upload')}
+        >
+          文档管理
+        </button>
+        <button 
+          className={`nav-button ${currentPage === 'settings' ? 'active' : ''}`}
+          onClick={() => setCurrentPage('settings')}
+        >
+          设置
+        </button>
+      </nav>
 
-      <main>
-        <h2>设置API密钥</h2>
-        <APIKeyForm />
-        <ChatBox />
+      <main className="app-main">
+        {currentPage === 'reader' && (
+          <ReaderPage documentId={documentId}/>
+        )}
+        {currentPage === 'settings' && <SettingsPage />}
+        {currentPage === 'upload' && (
+          <DocumentPage onViewDocument={handleViewDocument} />
+        )}
       </main>
-      <div>
-          <DocumentUploader onUploadSuccess={handleUploadSuccess} />
-          <DocumentList updateTime={updateTime} onViewDocument={handleViewDocument} />
-      </div>
-      <div>
-        {pdfUrl && <PDFReader url={pdfUrl} onPageChange={handlePageChange} />}
-      </div>
     </div>
   );
 }

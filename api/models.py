@@ -2,6 +2,23 @@ from django.db import models
 
 # Create your models here.
 
+"""
+多个文档组成一个集合，多个集合组成一个项目
+每个文档有多个文本段落，每个文本段落有多个页面
+Task任务是针对文档的，每个文档对应有一个Task
+
+项目
+ |
+ |--- 集合
+ |    |--- 文档
+ |    |--- 文档
+ |    |--- 文档
+ |--- 集合
+ |    |--- 文档
+ |    |--- 文档
+ |    |--- 文档
+"""
+
 class ApiKey(models.Model):
     key = models.CharField(max_length=255, unique=True)
     base_url = models.CharField(max_length=255, default='https://api.betterspace.top')
@@ -40,6 +57,9 @@ class Task(models.Model):
     updated_at = models.DateTimeField(auto_now=True, help_text='最后更新时间')
     completed_at = models.DateTimeField(null=True, blank=True, help_text='完成时间')
 
+    # 关联字段
+    collection_id = models.IntegerField(default=0, help_text='集合ID')
+
     # 元数据
     metadata = models.JSONField(default=dict, blank=True, help_text='额外的任务元数据')
 
@@ -65,7 +85,8 @@ class TextSection(models.Model):
 
 class Document(models.Model):
     title = models.CharField(max_length=255, help_text='文档标题')
-    sections = models.ManyToManyField(TextSection, related_name='documents')
+    english_sections = models.ManyToManyField(TextSection, related_name='english_documents', blank=True)
+    chinese_sections = models.ManyToManyField(TextSection, related_name='chinese_documents', blank=True)
     created_at = models.DateTimeField(auto_now_add=True, help_text='创建时间')
     updated_at = models.DateTimeField(auto_now=True, help_text='最后更新时间')
 
@@ -74,6 +95,30 @@ class Document(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.linked_task.title} - {self.linked_file_path}"
+
+    class Meta:
+        ordering = ['-created_at']
+
+class Collection(models.Model):
+    name = models.CharField(max_length=255, help_text='集合名称')
+    documents = models.ManyToManyField(Document, related_name='collections')
+    created_at = models.DateTimeField(auto_now_add=True, help_text='创建时间')
+    updated_at = models.DateTimeField(auto_now=True, help_text='最后更新时间')
+
+    def __str__(self):
+        return f"{self.name} - {self.created_at}"
+
+    class Meta:
+        ordering = ['-created_at']
+
+class Project(models.Model):
+    name = models.CharField(max_length=255, help_text='项目名称')
+    collections = models.ManyToManyField(Collection, related_name='projects')
+    created_at = models.DateTimeField(auto_now_add=True, help_text='创建时间')
+    updated_at = models.DateTimeField(auto_now=True, help_text='最后更新时间')
+
+    def __str__(self):
+        return f"{self.name} - {self.created_at}"
 
     class Meta:
         ordering = ['-created_at']

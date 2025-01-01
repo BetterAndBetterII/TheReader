@@ -9,7 +9,7 @@ import uuid
 import os
 import shutil
 import logging
-from api.models import Task, Document, TextSection
+from api.models import Task, Document, TextSection, Project, Collection
 from prepdocs.config import Section, Page, FileType
 
 logger = logging.getLogger(__name__)
@@ -23,12 +23,13 @@ class DocumentPipeline:
         self.daemon_thread = threading.Thread(target=self._process_queue, daemon=True)
         self.daemon_thread.start()
 
-    def add_task(self, title: str, file_path: str) -> int:
+    def add_task(self, title: str, file_path: str, collection_id: int) -> int:
         """添加新任务到流水线，返回任务ID"""
         task = Task.objects.create(
             title=title,
             file_path=file_path,
-            status=Task.Status.PENDING
+            status=Task.Status.PENDING,
+            collection_id=collection_id
         )
         self.task_queue.put(task.id)
         return task.id
@@ -52,13 +53,13 @@ class DocumentPipeline:
             # ------------------预处理阶段------------------
             self._update_task_status(task, Task.Status.PREPROCESSING, 25)
             # 实现预处理逻辑
-            section = self.stage_1(task.file_path, task.title)
-            logger.debug(f"预处理阶段完成: {section}")
+            image_section = self.stage_1(task.file_path, task.title)
+            logger.debug(f"预处理阶段完成: {image_section}")
 
             # ------------------文本提取阶段------------------
             self._update_task_status(task, Task.Status.EXTRACTING, 50)
             # 实现预处理逻辑
-            english_section = self.stage_2(section)
+            english_section = self.stage_2(image_section)
             logger.debug(f"文本提取阶段完成: {english_section}")
 
             # ------------------翻译阶段------------------
@@ -68,7 +69,7 @@ class DocumentPipeline:
             logger.debug(f"翻译阶段完成: {chinese_section}")
 
             # ------------------保存阶段------------------
-            document = self.stage_4(english_section, chinese_section, task.file_path, task)
+            document = self.stage_4(english_section, chinese_section, task.file_path, task, image_section)
             # 完成
             self._update_task_status(task, Task.Status.COMPLETED, 100)
             return document
@@ -126,7 +127,7 @@ class DocumentPipeline:
 
         return translate_text(section, 'Simplified Chinese')
 
-    def stage_4(self, english_section: Section, chinese_section: Section, original_file_path: str, task: Task):
+    def stage_4(self, english_section: Section, chinese_section: Section, original_file_path: str, task: Task, image_section: Section):
         """
         保存阶段，将文本保存到数据库
         """
@@ -142,6 +143,8 @@ class DocumentPipeline:
         # 使用 shutil.move 替代 os.rename
         persist_file_path = persist_dir / document_id / task.title
         shutil.move(original_file_path, persist_file_path)
+        # 保存缩略图
+        shutil.move(image_section.pages[0].file_path, persist_dir / document_id / "thumbnail.png")
         for i, page in enumerate(english_section.pages):
             english_file_path = persist_dir / document_id / "en" / f"{document_id}_index_{i}.md"
             with open(english_file_path, 'w', encoding='utf-8') as f:
@@ -167,7 +170,13 @@ class DocumentPipeline:
             section=chinese_section.to_dict(),
             linked_file_path=persist_file_path
         )
-        document.sections.add(english_text_section, chinese_text_section)
+        document.english_sections.add(english_text_section)
+        document.chinese_sections.add(chinese_text_section)
         document.save()
+
+        # 链接项目和集合
+        collection = Collection.objects.get(id=task.collection_id)
+        collection.documents.add(document)
+
         logger.debug(f"Document {document} with title {document.title} created")
         return document

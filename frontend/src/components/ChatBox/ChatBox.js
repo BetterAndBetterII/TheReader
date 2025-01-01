@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import axios from 'axios';
+import ReactMarkdown from 'react-markdown';
 import './ChatBox.css';
 
 const ChatBox = () => {
@@ -7,6 +8,7 @@ const ChatBox = () => {
     const [response, setResponse] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [imageData, setImageData] = useState(null);
+    const [chatHistory, setChatHistory] = useState([]);
 
     const handlePaste = useCallback(async (e) => {
         const items = e.clipboardData?.items;
@@ -32,16 +34,51 @@ const ChatBox = () => {
         e.preventDefault();
         if (!input.trim() && !imageData) return;
 
+        // 添加用户消息到历史记录
+        const userMessage = {
+            role: 'user',
+            content: [{
+                "type": "text",
+                "text": input.trim()
+            }].concat(imageData ? [{
+                "type": "image_url",
+                "image_url": {
+                    "url": `data:image/jpeg;base64,${imageData}`
+                }
+            }] : []),
+            timestamp: new Date().toISOString(),
+        };
+        
+        setChatHistory(prev => [...prev, userMessage]);
         setIsLoading(true);
         setResponse('');
+
         try {
+            // 构建完整的对话历史
+            const messages = [...chatHistory, userMessage].map(msg => ({
+                role: msg.role,
+                content: msg.content
+            }));
+
             const result = await axios.post('/api/gemini_chat_image', {
                 prompt: input,
-                image_data: imageData
+                image_data: imageData,
+                chat_history: messages // 发送完整的对话历史
             });
-            setResponse(result.data.response || '未获取到回答');
-            // 清除已发送的图片数据
+
+            const assistantMessage = {
+                role: 'assistant',
+                content: [{
+                    "type": "text",
+                    "text": result.data.response || '未获取到回答'
+                }],
+                timestamp: new Date().toISOString(),
+            };
+
+            setChatHistory(prev => [...prev, assistantMessage]);
+            setResponse(assistantMessage.content);
             setImageData(null);
+            setInput('');
         } catch (error) {
             console.error('Error:', error);
             setResponse('抱歉，发生了一些错误，请稍后再试。');
@@ -52,8 +89,23 @@ const ChatBox = () => {
 
     return (
         <div className="chat-container">
+            <div className="chat-history">
+                {chatHistory.map((message, index) => (
+                    <div 
+                        key={index} 
+                        className={`chat-message ${message.role === 'user' ? 'user-message' : 'assistant-message'}`}
+                    >
+                        {message.content.length > 1 && message.content.map(item => item.image_url ? <div className="message-content-image-container">
+                            <img src={item.image_url.url} alt="已粘贴的图片" style={{ maxWidth: '100px', maxHeight: '100px' }} />
+                        </div> : null)}
+                        {message.content.length > 0 && <div className={`message-content markdown-body ${message.role === 'user' ? 'user-message-content' : 'assistant-message-content'}`}> 
+                            {message.role === 'assistant' ? <ReactMarkdown>{message.content[0].text}</ReactMarkdown> : message.content.map(item => item.text || "").join('')}
+                        </div>}
+                    </div>
+                ))}
+            </div>
+
             <div className="chat-response">
-                {response && <div className="response-text">{response}</div>}
                 {isLoading && (
                     <div className="loading-spinner">
                         <div className="spinner"></div>
@@ -67,7 +119,7 @@ const ChatBox = () => {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onPaste={handlePaste}
-                    placeholder="请输入您的问题...（可以粘贴图片）"
+                    placeholder="请输入您的问题...（支持Markdown格式）"
                     className="chat-input"
                 />
                 {imageData && (

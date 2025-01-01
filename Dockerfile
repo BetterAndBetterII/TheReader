@@ -44,8 +44,6 @@ RUN python manage.py collectstatic --noinput
 # 暴露端口
 EXPOSE 8000
 
-RUN python manage.py migrate
-
 # 启动命令
 ENTRYPOINT ["/bin/bash", "docker-entrypoint.sh"]
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+#CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

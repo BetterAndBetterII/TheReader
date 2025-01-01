@@ -38,8 +38,8 @@ class ClientStatus:
 class ClientPool:
     def __init__(self, 
                  clients: List[GeminiClient] = None,
-                 max_retries: int = 3,
-                 retry_delay: float = 1.0,
+                 max_retries: int = 20,
+                 retry_delay: float = 2.0,
                  max_concurrent_requests: int = 50):
         """
         初始化客户端池

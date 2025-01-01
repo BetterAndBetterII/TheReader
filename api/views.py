@@ -54,11 +54,7 @@ def add_api_key(request):
         return JsonResponse({'error': response['error']}, status=500)
     
     ApiKey.objects.create(key=key, base_url=base_url)
-    global_env['gemini_client_pool'] = ClientPool(
-        max_retries=3,
-        retry_delay=1.0,
-        max_concurrent_requests=50
-    )
+    global_env['gemini_client_pool'] = ClientPool()
     return JsonResponse({'message': 'API key added successfully'})
 
 def list_api_keys(request):
@@ -80,11 +76,7 @@ def delete_api_key(request):
     candidates.first().delete()
 
     # refresh gemini client pool
-    global_env['gemini_client_pool'] = ClientPool(
-        max_retries=3,
-        retry_delay=1.0,
-        max_concurrent_requests=50
-    )
+    global_env['gemini_client_pool'] = ClientPool()
     return JsonResponse({'message': 'API key deleted successfully'})
 
 def add_document(request):

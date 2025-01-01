@@ -68,7 +68,7 @@ const PDFReader = ({ url, onPageChange, documentId, currentPageContentChanged })
         className="pdf-viewer-section"
         style={{ height: `${viewerHeight}%` }}
       >
-        <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
+        <Worker workerUrl="/pdf.worker.min.js">
           <div className="pdf-reader">
             <Viewer
               fileUrl={url}

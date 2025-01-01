@@ -1,21 +1,20 @@
 .chat-container {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    height: 85%;
-    padding: 1rem;
+    height: calc(100vh - 80px);
+    position: relative;
     background-color: #f5f5f5;
-    padding-bottom: 20rem;
 }
 
 .chat-history {
     flex: 1;
     overflow-y: auto;
-    margin-bottom: 1rem;
-    padding: 1rem;
+    padding: 20px;
+    scroll-behavior: smooth;
     background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin: 0;
+    border: 2px dashed #ced4da;
+    position: relative;
 }
 
 .chat-message {
@@ -123,8 +122,10 @@
     gap: 0.5rem;
     padding: 1rem;
     background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-top: 1px solid #ced4da;
+    position: sticky;
+    bottom: 0;
+    height: 40px;
 }
 
 .chat-input {
@@ -157,12 +158,12 @@
 .loading-spinner {
     display: flex;
     justify-content: center;
-    padding: 1rem;
+    padding: 0.5rem;
 }
 
 .spinner {
-    width: 30px;
-    height: 30px;
+    width: 15px;
+    height: 15px;
     border: 3px solid #f3f3f3;
     border-top: 3px solid #007bff;
     border-radius: 50%;
@@ -271,4 +272,28 @@
 
 .confirm-no:hover {
     background-color: #5a6268;
+}
+
+.empty-chat {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: #6c757d;
+}
+
+.empty-chat-emoji {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.empty-chat-text {
+    font-size: 1.2rem;
+    font-weight: 800;
+    font-family: 'Arial', sans-serif;
+    font-size: 2rem;
+    white-space: nowrap;
+    padding-left: 2rem;
+    margin-bottom: 8rem;
 } 

@@ -56,6 +56,32 @@ def add_api_key(request):
     ApiKey.objects.create(key=key, base_url=base_url)
     return JsonResponse({'message': 'API key added successfully'})
 
+def list_api_keys(request):
+    api_keys = ApiKey.objects.all().order_by('-created_at')
+    return JsonResponse({'api_keys': [{
+        'key': api_key.key.replace(api_key.key[-24:], '****************'),
+        'base_url': api_key.base_url,
+        'counter': api_key.counter,
+        'created_at': api_key.created_at.strftime('%Y-%m-%d %H:%M:%S') if api_key.created_at else None,
+        'last_used_at': api_key.last_used_at.strftime('%Y-%m-%d %H:%M:%S') if api_key.last_used_at else None,
+        'last_error_message': api_key.last_error_message
+    } for api_key in api_keys]})
+
+def delete_api_key(request):
+    json_data = json.loads(request.body)
+    api_key = json_data.get('api_key')
+    first_12_digits = api_key[:12]
+    candidates = ApiKey.objects.filter(key__startswith=first_12_digits)
+    candidates.first().delete()
+
+    # refresh gemini client pool
+    global_env['gemini_client_pool'] = ClientPool(
+        max_retries=3,
+        retry_delay=1.0,
+        max_concurrent_requests=50
+    )
+    return JsonResponse({'message': 'API key deleted successfully'})
+
 def add_document(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
@@ -401,3 +427,18 @@ def get_collection(request, project_id, collection_id):
     except Exception as e:
         logger.error(f"获取集合详情失败: {str(e)}")
         return JsonResponse({'error': '获取集合详情失败'}, status=500)
+
+def generate_mindmap(request):
+    data = json.loads(request.body)
+    document_id = data.get('docid')
+    prompt = data.get('prompt')
+
+    system_prompt = "You are a helpful assistant that can generate mindmaps. You should use n-level markdown to generate the mindmap. All the items should be brief and concise."
+    user_prompt = f"Generate a mindmap for the following text: {prompt}"
+
+    gemini_client: GeminiClient = global_env['gemini_client_pool']
+    response = gemini_client.execute_with_retry(GeminiClient.chat_with_text, f"{system_prompt}\n\n{user_prompt}")
+
+    # 去掉markdown的代码块
+    clean_response = response['text'].replace('```', '').replace('```markdown', '')
+    return JsonResponse({'message': '思维导图生成成功', 'mindmap': clean_response})

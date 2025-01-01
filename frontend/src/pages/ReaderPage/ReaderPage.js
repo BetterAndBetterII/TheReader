@@ -7,7 +7,7 @@ import './ReaderPage.css';
 const ReaderPage = ({ documentId }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isDraggingHorizontal, setIsDraggingHorizontal] = useState(false);
-  const [readerWidth, setReaderWidth] = useState(65); // 默认65%的宽度
+  const [readerWidth, setReaderWidth] = useState(75); // 默认75%的宽度
   const [pdfUrl, setPdfUrl] = useState(null);
   const [pageContent, setPageContent] = useState('');
 

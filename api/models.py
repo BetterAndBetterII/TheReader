@@ -25,6 +25,10 @@ class ApiKey(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    counter = models.IntegerField(default=0)
+    last_used_at = models.DateTimeField(null=True, blank=True)
+    last_error_message = models.TextField(null=True, blank=True)
+
     def __str__(self):
         return self.key[:10] + '...'
 

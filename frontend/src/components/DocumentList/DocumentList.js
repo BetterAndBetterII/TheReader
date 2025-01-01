@@ -211,7 +211,7 @@ const DocumentList = ({updateTime, onViewDocument, collectionId, projectId}) => 
             <Grid 
                 container 
                 spacing={3}
-                justifyContent="flex-start"
+                justifyContent="center"
                 alignItems="stretch"
             >
                 {processingTasks.length > 0 && processingTasks.map((task) => (
@@ -229,6 +229,7 @@ const DocumentList = ({updateTime, onViewDocument, collectionId, projectId}) => 
                         }}>
                             <CardContent sx={{ 
                                 minWidth: '200px',
+                                width: '300px',
                                 flex: 1,
                                 p: 2,
                                 '&:last-child': { pb: 2 }
@@ -281,6 +282,7 @@ const DocumentList = ({updateTime, onViewDocument, collectionId, projectId}) => 
                         }}>
                             <CardContent sx={{ 
                                 flex: 1,
+                                width: '300px',
                                 p: 2,
                                 '&:last-child': { pb: 2 }
                             }}>

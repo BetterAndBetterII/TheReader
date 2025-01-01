@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './APIKeyForm.css';
 
-const APIKeyForm = () => {
+
+
+const APIKeyForm = ({ onAdd }) => {
     const [apiKey, setApiKey] = useState('');
     const [baseUrl, setBaseUrl] = useState('');
     const [status, setStatus] = useState({ type: '', message: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [apiKeys, setApiKeys] = useState([]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -31,6 +34,7 @@ const APIKeyForm = () => {
                     type: 'success',
                     message: response.data.message
                 });
+                onAdd();
                 // 清空表单
                 setApiKey('');
                 setBaseUrl('');
@@ -45,10 +49,16 @@ const APIKeyForm = () => {
         }
     };
 
+    
+
     return (
         <div className="api-key-form-container">
-            <form onSubmit={handleSubmit} className="api-key-form">
-                <div className="form-group">
+            <div className="api-key-form-header">
+                <h2>API密钥管理</h2>
+            </div>
+            <div className="api-key-form-content">
+                <form onSubmit={handleSubmit} className="api-key-form">
+                    <div className="form-group">
                     <label htmlFor="apiKey">API密钥 *</label>
                     <input
                         id="apiKey"
@@ -85,6 +95,8 @@ const APIKeyForm = () => {
                     {isSubmitting ? '提交中...' : '提交'}
                 </button>
             </form>
+            </div>
+            
         </div>
     );
 };

@@ -6,6 +6,8 @@ from PIL import Image
 from google import generativeai as genai
 from google.ai import generativelanguage as glm
 from typing import Literal
+from api.models import ApiKey
+from django.utils import timezone
 
 
 class GeminiClient:
@@ -13,7 +15,11 @@ class GeminiClient:
         # 初始化Gemini API配置
         self.api_key = api_key if api_key else os.getenv('GEMINI_API_KEY')
         self.base_url = base_url if base_url else os.getenv('GEMINI_API_BASE')
-        
+        try:
+            self.api_key_model = ApiKey.objects.get(key=self.api_key)
+        except ApiKey.DoesNotExist:
+            self.api_key_model = None
+
         # 创建模型配置
         client = glm.GenerativeServiceClient(
             transport='rest',
@@ -36,6 +42,7 @@ class GeminiClient:
         :return: 模型的回复
         """
         try:
+            self.update_api_key_usage()
             chat = self.text_model.start_chat()
 
             response = chat.send_message(message)
@@ -43,6 +50,7 @@ class GeminiClient:
                 'text': response.text,
             }
         except Exception as e:
+            self.update_api_key_error(str(e))
             return {
                 'error': str(e)
             }
@@ -56,6 +64,7 @@ class GeminiClient:
         :return: 模型的回复
         """
         try:
+            self.update_api_key_usage()
             # 处理图片数据
             if image_type == "base64":
                 # 处理可能的 base64 前缀
@@ -102,6 +111,20 @@ class GeminiClient:
                 'text': response.text
             }
         except Exception as e:
+            self.update_api_key_error(str(e))
             return {
                 'error': f'处理请求时发生错误: {str(e)}'
             }
+
+    def update_api_key_usage(self):
+        if not self.api_key_model:
+            return
+        self.api_key_model.counter += 1
+        self.api_key_model.last_used_at = timezone.now()
+        self.api_key_model.save()
+
+    def update_api_key_error(self, error_message):
+        if not self.api_key_model:
+            return
+        self.api_key_model.last_error_message = error_message
+        self.api_key_model.save()

@@ -74,3 +74,10 @@
     color: #2e7d32;
     border: 1px solid #c8e6c9;
 } 
+
+.api-key-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}

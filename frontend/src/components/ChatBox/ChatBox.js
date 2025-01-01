@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import './ChatBox.css';
@@ -10,6 +10,7 @@ const ChatBox = ({ pageContent }) => {
     const [imageData, setImageData] = useState(null);
     const [chatHistory, setChatHistory] = useState([]);
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+    const endRef = useRef(null);
 
     const handlePaste = useCallback(async (e) => {
         const items = e.clipboardData?.items;
@@ -30,6 +31,23 @@ const ChatBox = ({ pageContent }) => {
             }
         }
     }, []);
+
+    const scrollToBottom = () => {
+        setTimeout(() => {
+            if (endRef.current) {
+                const chatHistory = endRef.current.closest('.chat-history');
+                if (chatHistory) {
+                    chatHistory.scrollTop = chatHistory.scrollHeight;
+                }
+            }
+        }, 100);
+    };
+
+    useEffect(() => {
+        if (chatHistory.length > 0 && !isLoading) {
+            scrollToBottom();
+        }
+    }, [chatHistory, isLoading]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -60,6 +78,8 @@ const ChatBox = ({ pageContent }) => {
         setChatHistory(prev => [...prev, userMessage]);
         setIsLoading(true);
         setResponse('');
+        setInput('');
+        scrollToBottom();
 
         try {
             // 构建完整的对话历史
@@ -87,7 +107,7 @@ const ChatBox = ({ pageContent }) => {
             setChatHistory(prev => [...prev, assistantMessage]);
             setResponse(assistantMessage.content);
             setImageData(null);
-            setInput('');
+            scrollToBottom();
         } catch (error) {
             console.error('Error:', error);
             setResponse('抱歉，发生了一些错误，请稍后再试。');
@@ -120,26 +140,35 @@ const ChatBox = ({ pageContent }) => {
                 </div>
             )}
             <div className="chat-history">
-                {chatHistory.map((message, index) => (
-                    <div 
-                        key={index} 
-                        className={`chat-message ${message.role === 'user' ? 'user-message' : 'assistant-message'}`}
-                    >
-                        {message.content.length > 1 && message.content.map(item => item.image_url ? <div className="message-content-image-container">
-                            <img src={item.image_url.url} alt="已粘贴的图片" style={{ maxWidth: '100px', maxHeight: '100px' }} />
-                        </div> : null)}
-                        {message.content.length > 0 && <div className={`message-content markdown-body ${message.role === 'user' ? 'user-message-content' : 'assistant-message-content'}`}> 
-                            {message.role === 'assistant' ? <ReactMarkdown>{message.content[0].text}</ReactMarkdown> : message.content[0].text || ""}
-                        </div>}
+                {chatHistory.length === 0 ? (
+                    <div className="empty-chat">
+                        <div className="empty-chat-emoji">🤖</div>
+                        <div className="empty-chat-text">有什么可以帮到你？</div>
                     </div>
-                ))}
-            </div>
-
-            <div className="chat-response">
+                ) : (
+                    chatHistory.map((message, index) => (
+                        <div 
+                            key={index} 
+                            className={`chat-message ${message.role === 'user' ? 'user-message' : 'assistant-message'}`}
+                        >
+                            {message.content.length > 1 && message.content.map(item => item.image_url ? <div className="message-content-image-container">
+                                <img src={item.image_url.url} alt="已粘贴的图片" style={{ maxWidth: '100px', maxHeight: '100px' }} />
+                            </div> : null)}
+                            {message.content.length > 0 && <div className={`message-content markdown-body ${message.role === 'user' ? 'user-message-content' : 'assistant-message-content'}`}> 
+                                {message.role === 'assistant' ? <ReactMarkdown>{message.content[0].text}</ReactMarkdown> : message.content[0].text || ""}
+                            </div>}
+                        </div>
+                    ))
+                )}
                 {isLoading && (
-                    <div className="loading-spinner">
-                        <div className="spinner"></div>
+                    <div className="chat-message assistant-message">
+                        <div className="loading-spinner">
+                            <div className="spinner"></div>
+                        </div>
                     </div>
+                )}
+                {chatHistory.length > 0 && (
+                    <div ref={endRef}></div>
                 )}
             </div>
             
@@ -149,7 +178,7 @@ const ChatBox = ({ pageContent }) => {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onPaste={handlePaste}
-                    placeholder="请输入您的问题...（支持Markdown格式）"
+                    placeholder="请输入您的问题"
                     className="chat-input"
                 />
                 {imageData && (

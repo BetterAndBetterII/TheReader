@@ -1,13 +1,15 @@
-.settings-page {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+/* 自定义样式补充 */
+.MuiContainer-root {
+  min-height: 100vh;
+  background-color: #f5f5f5;
 }
 
-.settings-page h2 {
-  margin-bottom: 2rem;
-  color: #333;
+/* 确保表格内容在小屏幕上可以滚动 */
+.MuiTableContainer-root {
+  overflow-x: auto;
+}
+
+/* API Key chip 样式 */
+.MuiChip-root {
+  font-family: monospace;
 } 

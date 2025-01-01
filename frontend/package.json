@@ -31,7 +31,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "cross-env BUILD_PATH=../build react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -54,6 +54,8 @@
     ]
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "cross-env": "^7.0.3",
     "pdfjs-dist": "^3.4.120"
   }
 }

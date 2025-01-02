@@ -33,9 +33,9 @@ def translate_text(section: Section, target_language: str='Simplified Chinese') 
         file_type=FileType.TEXT,
         filename=section.filename
     )
-    
+    max_workers = min(len(client_pool._get_clients()) * 2, 8)
     # 使用线程池并行处理翻译，但保持顺序
-    with ThreadPoolExecutor(max_workers=4) as executor:
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_index = {
             executor.submit(process_single_translation, client_pool, page.content, target_language): idx
             for idx, page in enumerate(section.pages)

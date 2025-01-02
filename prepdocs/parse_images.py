@@ -31,9 +31,9 @@ def parse_images(section):
         file_type=FileType.TEXT,
         filename=section.filename
     )
-    
+    max_workers = min(len(client_pool._get_clients()) * 2, 8)
     # 使用线程池并行处理图片，但保持顺序
-    with ThreadPoolExecutor(max_workers=4) as executor:
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_index = {
             executor.submit(process_single_page, client_pool, page): idx
             for idx, page in enumerate(section.pages)

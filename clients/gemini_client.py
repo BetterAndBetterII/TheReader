@@ -42,10 +42,10 @@ class GeminiClient:
         :return: 模型的回复
         """
         try:
-            self.update_api_key_usage()
             chat = self.text_model.start_chat()
 
             response = chat.send_message(message)
+            self.update_api_key_usage()
             return {
                 'text': response.text,
             }
@@ -64,7 +64,6 @@ class GeminiClient:
         :return: 模型的回复
         """
         try:
-            self.update_api_key_usage()
             # 处理图片数据
             if image_type == "base64":
                 # 处理可能的 base64 前缀
@@ -107,6 +106,7 @@ class GeminiClient:
 
             # 发送图片和文本到模型
             response = self.vision_model.generate_content([message, image])
+            self.update_api_key_usage()
             return {
                 'text': response.text
             }

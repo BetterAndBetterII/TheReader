@@ -144,6 +144,7 @@ def add_api_key(request):
     global_env['gemini_client_pool'] = ClientPool()
     return JsonResponse({'message': 'API key added successfully'})
 
+@require_use_api_permission
 def list_api_keys(request):
     api_keys = ApiKey.objects.all().order_by('-created_at')
     return JsonResponse({'api_keys': [{

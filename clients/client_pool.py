@@ -38,7 +38,7 @@ class ClientStatus:
 class ClientPool:
     def __init__(self, 
                  clients: List[GeminiClient] = None,
-                 max_retries: int = 20,
+                 max_retries: int = 9999999,
                  retry_delay: float = 2.0,
                  max_concurrent_requests: int = 50):
         """
@@ -75,7 +75,7 @@ class ClientPool:
             # retry_delay 设置为客户端越少，重试延迟越大
             self.retry_delay = 2.0 / len(self.clients) if len(self.clients) > 0 else 0
             # 设置最大重试次数为客户端数量
-            self.max_retries = len(self.clients) * 20
+            self.max_retries = len(self.clients) * 9999999
             self.client_status = {
                 client: ClientStatus() for client in self.clients
             }

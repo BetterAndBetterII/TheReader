@@ -11,3 +11,7 @@ persist/
 
 */node_modules/
 build/
+
+*.key
+*.pem
+*.log

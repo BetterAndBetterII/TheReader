@@ -2,13 +2,19 @@ version: '3.8'
 
 services:
   web:
-#    build: .
-    image: ghcr.io/betterandbetterii/the-reader:latest
+    build: .
+    # image: ghcr.io/betterandbetterii/the-reader:latest
     ports:
       - "8000:8000"
     volumes:
       - ./persist:/app/persist
     environment:
       - DEBUG=1
-    restart: unless-stopped 
+    restart: unless-stopped
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge 
     

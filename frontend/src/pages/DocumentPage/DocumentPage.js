@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Grid, FormControl, InputLabel, Select, MenuItem, Button, Typography, Dialog, DialogTitle, DialogContent, IconButton, Tooltip } from '@mui/material';
+import { Box, Grid, FormControl, InputLabel, Select, MenuItem, Button, Typography, Dialog, DialogTitle, DialogContent, IconButton, Tooltip, Snackbar } from '@mui/material';
 import FolderIcon from '@mui/icons-material/Folder';
+import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
@@ -9,7 +10,7 @@ import DocumentUploader from '../../components/DocumentUploader/DocumentUploader
 import DocumentList from '../../components/DocumentList/DocumentList';
 import './DocumentPage.css';
 
-const DocumentPage = ({ onViewDocument }) => {
+const DocumentPage = ({ onViewDocument, permissionChallenge }) => {
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState('');
   const [collections, setCollections] = useState([]);
@@ -17,6 +18,12 @@ const DocumentPage = ({ onViewDocument }) => {
   const [updateTime, setUpdateTime] = useState(new Date().toLocaleString());
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
 
   // 更新 URL 参数
   const updateUrlParams = (params) => {
@@ -92,6 +99,7 @@ const DocumentPage = ({ onViewDocument }) => {
   useEffect(() => {
     if (selectedProject) {
       fetchCollections(selectedProject);
+      // setSelectedCollection(null);
       // 保存到 localStorage
       localStorage.setItem('lastSelectedProject', selectedProject);
       // 更新 URL
@@ -101,21 +109,69 @@ const DocumentPage = ({ onViewDocument }) => {
 
   const fetchProjects = async () => {
     try {
-      const response = await fetch('/api/projects/');
-      const data = await response.json();
-      setProjects(data.projects || []);
+      fetch('/api/projects/').then(response => {
+        if (response.status === 403) {
+          permissionChallenge();
+        } else {
+          return response.json();
+        }
+      }).then(data => {
+        setProjects(data.projects || []);
+      }).catch(error => {
+        console.error('获取项目列表失败:', error);
+      });
     } catch (error) {
       console.error('获取项目列表失败:', error);
+      if (error.message === '权限不足') {
+        permissionChallenge();
+      } else {
+        console.error('获取项目列表失败:', error);
+      }
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    // 二次确认
+    if (window.confirm('确定要删除该项目吗？项目下所有集合和文档都将被删除！且无法恢复！')) {
+      if (window.confirm('再次确认要删除该项目吗？')) {
+        fetch(`/api/projects/delete/`, {
+          method: 'POST',
+          body: JSON.stringify({ project_id: selectedProject }),
+        }).then(response => {
+          if (response.status === 403) {
+            permissionChallenge();
+          } else {
+            setSnackbar({
+              open: true,
+              message: '项目删除成功',
+              severity: 'success'
+            });
+            fetchProjects();
+          }
+        });
+      }
     }
   };
 
   const fetchCollections = async (projectId) => {
     try {
-      const response = await fetch(`/api/projects/${projectId}/collections/`);
-      const data = await response.json();
-      setCollections(data.collections || []);
+      fetch(`/api/projects/${projectId}/collections/`).then(response => {
+        if (response.status === 403) {
+          permissionChallenge();
+        } else {
+          return response.json();
+        }
+      }).then(data => {
+        setCollections(data.collections || []);
+      }).catch(error => {
+        console.error('获取集合列表失败:', error);
+      });
     } catch (error) {
-      console.error('获取集合列表失败:', error);
+      if (error.message === '权限不足') {
+        permissionChallenge();
+      } else {
+        console.error('获取集合列表失败:', error);
+      }
     }
   };
 
@@ -123,18 +179,39 @@ const DocumentPage = ({ onViewDocument }) => {
     const projectName = prompt('请输入项目名称：');
     if (projectName) {
       try {
-        const response = await fetch('/api/projects/create/', {
+        fetch('/api/projects/create/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ name: projectName }),
-        });
-        if (response.ok) {
+        }).then(response => {
+          if (response.status === 403) {
+            permissionChallenge();
+          } else {
+            return response.json();
+          }
+        }).then(data => {
+          setSnackbar({
+            open: true,
+            message: '创建项目成功',
+            severity: 'success'
+          });
           fetchProjects();
-        }
+        }).catch(error => {
+          console.error('创建项目失败:', error);
+        });
       } catch (error) {
-        console.error('创建项目失败:', error);
+        setSnackbar({
+          open: true,
+          message: '创建项目失败',
+          severity: 'error'
+        });
+        if (error.message === '权限不足') {
+          permissionChallenge();
+        } else {
+          console.error('创建项目失败:', error);
+        }
       }
     }
   };
@@ -143,19 +220,55 @@ const DocumentPage = ({ onViewDocument }) => {
     const collectionName = prompt('请输入集合名称：');
     if (collectionName && selectedProject) {
       try {
-        const response = await fetch(`/api/projects/${selectedProject}/collections/create/`, {
+        fetch(`/api/projects/${selectedProject}/collections/create/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ name: collectionName }),
+        }).then(response => {
+          if (response.status === 403) {
+            permissionChallenge();
+          } else {
+            setSnackbar({
+              open: true,
+              message: '创建集合成功',
+              severity: 'success'
+            });
+            return response.json();
+          }
+        }).then(data => {
+          fetchCollections(selectedProject);
+        }).catch(error => {
+          console.error('创建集合失败:', error);
         });
-        if (response.ok) {
+      } catch (error) {
+        if (error.message === '权限不足') {
+          permissionChallenge();
+        } else {
+          console.error('创建集合失败:', error);
+        }
+      }
+    }
+  };
+
+  const handleDeleteCollection = async () => {
+    if (window.confirm('确定要删除该集合吗？集合下所有文档都将被删除！且无法恢复！')) {
+      fetch(`/api/projects/${selectedProject}/collections/delete/`, {
+        method: 'POST',
+        body: JSON.stringify({ collection_id: selectedCollection.id }),
+      }).then(response => {
+        if (response.status === 403) {
+          permissionChallenge();
+        } else {
+          setSnackbar({
+            open: true,
+            message: '集合删除成功',
+            severity: 'success'
+          });
           fetchCollections(selectedProject);
         }
-      } catch (error) {
-        console.error('创建集合失败:', error);
-      }
+      });
     }
   };
 
@@ -214,6 +327,15 @@ const DocumentPage = ({ onViewDocument }) => {
             >
               创建项目
             </Button>
+            <Button
+              variant="contained"
+              startIcon={<DeleteIcon />}
+              onClick={handleDeleteProject}
+              disabled={!selectedProject}
+              color="error"
+            >
+              删除项目
+            </Button>
           </Box>
         </Grid>
 
@@ -239,6 +361,15 @@ const DocumentPage = ({ onViewDocument }) => {
                     onClick={handleCreateCollection}
                   >
                     创建集合
+                  </Button>
+                  <Button
+                    variant="contained"
+                    startIcon={<DeleteIcon />}
+                    onClick={handleDeleteCollection}
+                    disabled={!selectedCollection}
+                    color="error"
+                  >
+                    删除集合
                   </Button>
                 </Box>
               </Box>
@@ -338,6 +469,13 @@ const DocumentPage = ({ onViewDocument }) => {
           />
         </DialogContent>
       </Dialog>
+      <Snackbar
+        open={snackbar.open}
+        onClose={() => setSnackbar({ open: false, message: '', severity: 'success' })}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        autoHideDuration={2000}
+      />
     </Box>
   );
 };

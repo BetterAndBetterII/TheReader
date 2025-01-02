@@ -23,6 +23,8 @@ def process_single_page(client_pool, page):
 
 def parse_images(section):
     client_pool: ClientPool = global_env['gemini_client_pool']
+    if not client_pool._get_clients():
+        raise ValueError("No GeminiClient available. Please check your API keys.")
     result_section = Section(
         title=section.title,
         pages=[None] * len(section.pages),  # 预分配空间以保持顺序
@@ -44,7 +46,5 @@ def parse_images(section):
                 result_section.pages[idx] = result_page  # 使用原始索引存储结果
             except Exception as e:
                 print(f"处理页面 {idx + 1} 时发生错误: {str(e)}")
-    
-    # 移除任何处理失败的页面（None值）
-    result_section.pages = [page for page in result_section.pages if page is not None]
+
     return result_section

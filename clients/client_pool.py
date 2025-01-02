@@ -72,6 +72,10 @@ class ClientPool:
         """
         if self.clients is None:
             self.clients = self.gather_clients()
+            # retry_delay 设置为客户端越少，重试延迟越大
+            self.retry_delay = 2.0 / len(self.clients) if len(self.clients) > 0 else 0
+            # 设置最大重试次数为客户端数量
+            self.max_retries = len(self.clients) * 20
             self.client_status = {
                 client: ClientStatus() for client in self.clients
             }
@@ -166,7 +170,7 @@ class ClientPool:
                 
                 # 如果还有重试机会，等待后继续
                 if attempt < self.max_retries - 1:
-                    time.sleep(self.retry_delay * (attempt + 1))
+                    time.sleep(self.retry_delay ** (attempt + 1))
                     continue
                     
                 break

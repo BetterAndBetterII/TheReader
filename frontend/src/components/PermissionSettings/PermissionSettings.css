@@ -1,0 +1,31 @@
+.permission-settings {
+  margin-top: 20px;
+}
+
+.permission-switch {
+  margin: 10px 0;
+}
+
+.permission-description {
+  color: #666;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.password-section {
+  margin-top: 30px;
+}
+
+.password-form {
+  max-width: 400px;
+}
+
+.password-field {
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.password-button {
+  margin-top: 16px;
+  width: 100%;
+}

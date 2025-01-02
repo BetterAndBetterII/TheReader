@@ -7,3 +7,4 @@ protobuf~=5.29.2
 docx2pdf~=0.1.8
 pdf2image~=1.17.0
 google.generativeai~=0.8.3
+django-constance~=4.1.3

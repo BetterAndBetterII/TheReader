@@ -38,7 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'backend.apps.BackendConfig',
-    'api'
+    'api',
+    'constance',
+    'constance.backends.database'
 ]
 
 MIDDLEWARE = [
@@ -159,3 +161,19 @@ CORS_ALLOW_CREDENTIALS = True
 # 增加安全设置
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 X_FRAME_OPTIONS = 'SAMEORIGIN'
+
+# Constance 配置
+CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
+
+CONSTANCE_CONFIG = {
+    'GUEST_CAN_VIEW': (True, '游客是否可以查看文档'),
+    'GUEST_CAN_UPLOAD': (True, '游客是否可以上传文档'),
+    'GUEST_CAN_DELETE': (True, '游客是否可以删除文档'),
+    'GUEST_CAN_USE_API': (True, '游客是否可以使用API'),
+    'SUPERUSER_PASSWORD': ('', '超级用户密码'),
+}
+
+CONSTANCE_CONFIG_FIELDSETS = {
+    '游客权限设置': ('GUEST_CAN_VIEW', 'GUEST_CAN_UPLOAD', 'GUEST_CAN_DELETE', 'GUEST_CAN_USE_API'),
+    '超级用户设置': ('SUPERUSER_PASSWORD',),
+}

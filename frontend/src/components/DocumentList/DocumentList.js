@@ -15,7 +15,7 @@ import {
     IconButton,
     Box,
     LinearProgress,
-    CardMedia
+    CardMedia,
 } from '@mui/material';
 import { Description, Visibility, CheckCircle, Error, HourglassEmpty, Delete } from '@mui/icons-material';
 import './DocumentList.css';

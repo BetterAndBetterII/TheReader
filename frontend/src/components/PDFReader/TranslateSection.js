@@ -130,10 +130,18 @@ const TranslateSection = ({ documentId, currentPage, currentPageContentChanged }
         const data = await response.json();
         setMindmapData(data);
         setShowMindmap(true);
+      } else if (response.status === 403) {
+        throw new Error('No permission');
       } else {
-        console.error('获取思维导图失败');
+        throw new Error('重新生成思维导图失败');
       }
     } catch (error) {
+      if (error.message === 'No permission') {
+        setMindmapData({
+          mindmap: "# 抱歉，您没有权限使用此功能。"
+        });
+        setShowMindmap(true);
+      }
       console.error('获取思维导图出错:', error);
     } finally {
       setMindmapLoading(false);
@@ -158,10 +166,20 @@ const TranslateSection = ({ documentId, currentPage, currentPageContentChanged }
       if (response.ok) {
         const data = await response.json();
         setMindmapData(data);
+      } else if (response.status === 403) {
+        throw new Error('No permission');
       } else {
         console.error('重新生成思维导图失败');
+        throw new Error('重新生成思维导图失败');
       }
     } catch (error) {
+      if (error.message === 'No permission') {
+        setMindmapData({
+          mindmap: "# 抱歉，您没有权限使用此功能。"
+        });
+        setShowMindmap(true);
+        return;
+      }
       console.error('重新生成思维导图出错:', error);
     } finally {
       setMindmapLoading(false);

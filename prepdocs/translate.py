@@ -25,6 +25,8 @@ def translate_text(section: Section, target_language: str='Simplified Chinese') 
     多线程翻译文本，保持原始顺序
     """
     client_pool: ClientPool = global_env['gemini_client_pool']
+    if not client_pool._get_clients():
+        raise ValueError("No GeminiClient available. Please check your API keys and permissions.")
     result_section = Section(
         title=section.title,
         pages=[None] * len(section.pages),  # 预分配空间以保持顺序

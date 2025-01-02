@@ -93,7 +93,7 @@ const ChatBox = ({ pageContent }) => {
             const result = await axios.post('/api/gemini_chat_image', {
                 prompt: fullContent,
                 image_data: imageData,
-            });
+            })
 
             const assistantMessage = {
                 role: 'assistant',
@@ -109,8 +109,26 @@ const ChatBox = ({ pageContent }) => {
             setImageData(null);
             scrollToBottom();
         } catch (error) {
-            console.error('Error:', error);
-            setResponse('抱歉，发生了一些错误，请稍后再试。');
+            if (error.response && error.response.status === 403) {
+                setChatHistory(prev => [...prev, {
+                    role: 'assistant',
+                    content: [{
+                        "type": "text",
+                        "text": "抱歉，您没有权限使用此功能。"
+                    }],
+                    timestamp: new Date().toISOString(),
+                }]);
+            } else {
+                console.error('Error:', error);
+                setChatHistory(prev => [...prev, {
+                    role: 'assistant',
+                    content: [{
+                        "type": "text",
+                        "text": "抱歉，发生了一些错误，请稍后再试。"
+                    }],
+                    timestamp: new Date().toISOString(),
+                }]);
+            }
         } finally {
             setIsLoading(false);
         }

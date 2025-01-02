@@ -11,26 +11,113 @@ import tempfile
 import logging
 import io
 from pathlib import Path
+from constance import config
 
 logger = logging.getLogger(__name__)
 
+# 权限装饰器，使用session判断
+def require_superuser(func):
+    def wrapper(request, *args, **kwargs):
+        if not request.session.get('is_superuser'):
+            return JsonResponse({'error': '权限不足'}, status=403)
+        return func(request, *args, **kwargs)
+    return wrapper
+
+def require_view_permission(func):
+    def wrapper(request, *args, **kwargs):
+        if not request.session.get('is_superuser') and not config.GUEST_CAN_VIEW:
+            return JsonResponse({'error': '权限不足'}, status=403)
+        return func(request, *args, **kwargs)
+    return wrapper
+
+def require_upload_permission(func):
+    def wrapper(request, *args, **kwargs):
+        if not request.session.get('is_superuser') and not config.GUEST_CAN_UPLOAD:
+            return JsonResponse({'error': '权限不足'}, status=403)
+        return func(request, *args, **kwargs)
+    return wrapper
+
+def require_delete_permission(func):
+    def wrapper(request, *args, **kwargs):
+        if not request.session.get('is_superuser') and not config.GUEST_CAN_DELETE:
+            return JsonResponse({'error': '权限不足'}, status=403)
+        return func(request, *args, **kwargs)
+    return wrapper
+
+def require_use_api_permission(func):
+    def wrapper(request, *args, **kwargs):
+        if not request.session.get('is_superuser') and not config.GUEST_CAN_USE_API:
+            return JsonResponse({'error': '权限不足'}, status=403)
+        return func(request, *args, **kwargs)
+    return wrapper
+
+@require_superuser
+def set_permission(request):
+    json_data = json.loads(request.body)
+    guest_can_view = json_data.get('guest_can_view')
+    guest_can_upload = json_data.get('guest_can_upload')
+    guest_can_delete = json_data.get('guest_can_delete')
+    guest_can_use_api = json_data.get('guest_can_use_api')
+    config.GUEST_CAN_VIEW = guest_can_view
+    config.GUEST_CAN_UPLOAD = guest_can_upload
+    config.GUEST_CAN_DELETE = guest_can_delete
+    config.GUEST_CAN_USE_API = guest_can_use_api
+    return JsonResponse({'message': '权限设置成功'})
+
+def get_permission(request):
+    return JsonResponse({
+        'guest_can_view': config.GUEST_CAN_VIEW,
+        'guest_can_upload': config.GUEST_CAN_UPLOAD,
+        'guest_can_delete': config.GUEST_CAN_DELETE,
+        'guest_can_use_api': config.GUEST_CAN_USE_API
+    })
+
+def login(request):
+    if request.method == 'GET':
+        return JsonResponse({'is_superuser': request.session.get('is_superuser')})
+    json_data = json.loads(request.body)
+    password = json_data.get('password')
+    if password == config.SUPERUSER_PASSWORD:
+        request.session['is_superuser'] = True
+        return JsonResponse({'message': '登录成功'})
+    else:
+        return JsonResponse({'error': '密码错误'}, status=401)
+    
+def logout(request):
+    request.session.clear()
+    return JsonResponse({'message': '登出成功'})
+
+@require_superuser
+def change_password(request):
+    json_data = json.loads(request.body)
+    new_password = json_data.get('new_password')
+    config.SUPERUSER_PASSWORD = new_password
+    return JsonResponse({'message': '密码修改成功'})
+
 # Create your views here.
 
+@require_use_api_permission
 def gemini_chat(request):
     json_data = json.loads(request.body)
     prompt = json_data.get('prompt')
-    gemini_client: GeminiClient = global_env['gemini_client']
+    client_pool: ClientPool = global_env['gemini_client_pool']
+    if not client_pool._get_clients():
+        return JsonResponse({'error': 'No GeminiClient available. Please check your API keys and permissions.'}, status=500)
+    gemini_client: GeminiClient = client_pool._select_client()
     response = gemini_client.chat_with_text(prompt)
     if 'error' in response:
         return JsonResponse({'error': response['error']}, status=500)
     return JsonResponse({'response': response['text']})
 
+@require_use_api_permission
 def gemini_chat_image(request):
     json_data = json.loads(request.body)
     prompt = json_data.get('prompt')
     image_data = json_data.get('image_data')
     image_type = json_data.get('image_type', 'base64')
     client_pool: ClientPool = global_env['gemini_client_pool']
+    if not client_pool._get_clients():
+        return JsonResponse({'error': 'No GeminiClient available. Please check your API keys and permissions.'}, status=500)
     if not image_data:
         response = client_pool.execute_with_retry(GeminiClient.chat_with_text, prompt)
     else:
@@ -68,6 +155,7 @@ def list_api_keys(request):
         'last_error_message': api_key.last_error_message
     } for api_key in api_keys]})
 
+@require_superuser
 def delete_api_key(request):
     json_data = json.loads(request.body)
     api_key = json_data.get('api_key')
@@ -79,6 +167,7 @@ def delete_api_key(request):
     global_env['gemini_client_pool'] = ClientPool()
     return JsonResponse({'message': 'API key deleted successfully'})
 
+@require_upload_permission
 def add_document(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
@@ -105,6 +194,7 @@ def add_document(request):
         'task_id': task_id
     })
 
+@require_delete_permission
 def remove_document(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
@@ -122,6 +212,7 @@ def remove_document(request):
         Task.objects.get(id=task_id).delete()
     return JsonResponse({'message': '文档删除成功'})
 
+@require_view_permission
 def list_documents(request):
     if request.method != 'GET':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
@@ -148,6 +239,7 @@ def list_documents(request):
         'documents': documents_data
     })
 
+@require_view_permission
 def get_document(request, document_id):
     if request.method != 'GET':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
@@ -183,6 +275,7 @@ def get_document(request, document_id):
     except Document.DoesNotExist:
         return JsonResponse({'error': '文档不存在'}, status=404)
 
+@require_view_permission
 def get_document_status(request, task_id):
     if request.method != 'GET':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
@@ -198,6 +291,7 @@ def get_document_status(request, task_id):
     except Task.DoesNotExist:
         return JsonResponse({'error': '任务不存在'}, status=404)
     
+@require_view_permission
 def get_document_thumbnail(request, document_id):
     try:
         document = Document.objects.get(id=document_id)
@@ -209,6 +303,7 @@ def get_document_thumbnail(request, document_id):
         logger.error(f"获取缩略图失败: {str(e)}")
         return JsonResponse({'error': '获取缩略图失败'}, status=500)
 
+@require_view_permission
 def view_document(request, document_id):
     try:
         document = Document.objects.get(id=document_id)
@@ -237,6 +332,7 @@ def view_document(request, document_id):
         logger.error(f"查看文档失败: {str(e)}")
         return JsonResponse({'error': '查看文档失败'}, status=500)
 
+@require_view_permission
 def get_document_text_section(request, document_id):    
     document = Document.objects.get(id=document_id)
     english_sections = document.english_sections.all()
@@ -246,6 +342,7 @@ def get_document_text_section(request, document_id):
         'chinese_sections': [section.to_dict() for section in chinese_sections]
     })
 
+@require_view_permission
 def list_projects(request):
     if request.method != 'GET':
         return JsonResponse({'error': '方法不允许'}, status=405)
@@ -263,6 +360,7 @@ def list_projects(request):
         'projects': projects_data
     })
 
+@require_superuser
 def create_project(request):
     if request.method != 'POST':
         return JsonResponse({'error': '方法不允许'}, status=405)
@@ -290,7 +388,15 @@ def create_project(request):
     except Exception as e:
         logger.error(f"创建项目失败: {str(e)}")
         return JsonResponse({'error': '创建项目失败'}, status=500)
+    
+@require_delete_permission
+def delete_project(request):
+    json_data = json.loads(request.body)
+    project_id = json_data.get('project_id')
+    Project.objects.get(id=project_id).delete()
+    return JsonResponse({'message': '项目删除成功'})
 
+@require_view_permission
 def get_project(request, project_id):
     if request.method != 'GET':
         return JsonResponse({'error': '方法不允许'}, status=405)
@@ -324,6 +430,7 @@ def get_project(request, project_id):
         logger.error(f"获取项目详情失败: {str(e)}")
         return JsonResponse({'error': '获取项目详情失败'}, status=500)
 
+@require_view_permission
 def list_collections(request, project_id):
     if request.method != 'GET':
         return JsonResponse({'error': '方法不允许'}, status=405)
@@ -349,6 +456,7 @@ def list_collections(request, project_id):
         logger.error(f"获取集合列表失败: {str(e)}")
         return JsonResponse({'error': '获取集合列表失败'}, status=500)
 
+@require_superuser
 def create_collection(request, project_id):
     if request.method != 'POST':
         return JsonResponse({'error': '方法不允许'}, status=405)
@@ -381,6 +489,13 @@ def create_collection(request, project_id):
         logger.error(f"创建集合失败: {str(e)}")
         return JsonResponse({'error': '创建集合失败'}, status=500)
 
+@require_delete_permission
+def delete_collection(request, project_id, collection_id):
+    collection = Collection.objects.get(id=collection_id)
+    collection.delete()
+    return JsonResponse({'message': '集合删除成功'})
+
+@require_view_permission
 def get_collection(request, project_id, collection_id):
     
     try:
@@ -425,6 +540,7 @@ def get_collection(request, project_id, collection_id):
         logger.error(f"获取集合详情失败: {str(e)}")
         return JsonResponse({'error': '获取集合详情失败'}, status=500)
 
+@require_use_api_permission
 def generate_mindmap(request):
     data = json.loads(request.body)
     document_id = data.get('docid')
@@ -433,8 +549,10 @@ def generate_mindmap(request):
     system_prompt = "You are a helpful assistant that can generate mindmaps. You should use n-level markdown to generate the mindmap. All the items should be brief and concise."
     user_prompt = f"Generate a mindmap for the following text: {prompt}"
 
-    gemini_client: GeminiClient = global_env['gemini_client_pool']
-    response = gemini_client.execute_with_retry(GeminiClient.chat_with_text, f"{system_prompt}\n\n{user_prompt}")
+    client_pool: ClientPool = global_env['gemini_client_pool']
+    if not client_pool._get_clients():
+        return JsonResponse({'error': 'No GeminiClient available. Please check your API keys and permissions.'}, status=500)
+    response = client_pool.execute_with_retry(GeminiClient.chat_with_text, f"{system_prompt}\n\n{user_prompt}")
 
     # 去掉markdown的代码块
     clean_response = response['text'].replace('```', '').replace('```markdown', '')

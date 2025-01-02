@@ -19,7 +19,10 @@ const DocumentUploader = ({ onUploadSuccess, collectionId }) => {
         setSnackbar({ open: true, message, severity });
     };
 
-    const handleCloseSnackbar = () => {
+    const handleCloseSnackbar = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
         setSnackbar(prev => ({ ...prev, open: false }));
     };
 

@@ -4,7 +4,7 @@ import PDFReader from '../../components/PDFReader/PDFReader';
 import ChatBox from '../../components/ChatBox/ChatBox';
 import './ReaderPage.css';
 
-const ReaderPage = ({ documentId }) => {
+const ReaderPage = ({ documentId, permissionChallenge }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isDraggingHorizontal, setIsDraggingHorizontal] = useState(false);
   const [readerWidth, setReaderWidth] = useState(75); // 默认75%的宽度
@@ -92,7 +92,7 @@ const ReaderPage = ({ documentId }) => {
         className="chat-section"
         style={{ width: `${100 - readerWidth}%`, height: '100%' }}
       >
-        <ChatBox pageContent={pageContent}/>
+        <ChatBox pageContent={pageContent} />
       </div>
     </div>
   );

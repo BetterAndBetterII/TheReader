@@ -38,6 +38,7 @@ class DocumentPipeline:
                           error_message: Optional[str] = None):
         """更新任务状态"""
         task.status = status
+        task.updated_at = timezone.now()
         if progress is not None:
             task.progress = progress
         if error_message:

@@ -40,6 +40,8 @@ The Reader 是一个基于 Django 和 React 的智能文档处理系统，能够
 
 支持控制访客权限。
 
+默认管理员密码为空，直接回车即可登录。登陆后请注意修改密码。
+
 ## 🏗️ 技术架构
 
 ### 🔧 后端 (Django)
@@ -113,6 +115,20 @@ TheReader/
 
 1. 🔧 在管理界面添加 API 密钥
 2. ⚙️ 配置 API 基础 URL（默认为 https://api.betterspace.top）
+
+### Gemini免费密钥申请
+
+在谷歌ai控制台创建一个apikey：https://aistudio.google.com/app/apikey
+
+一个账号最多可以开通11个免费项目，每个项目的限额是独立的，可以用来个人使用。
+
+![alt text](docs/image5.png)
+
+创建API后，可以检查是否处于免费状态
+
+如果处于付费层，修改控制台的费用账号绑定。把结算账号置空即可。
+
+只要确保 https://console.cloud.google.com/billing/projects 这里的结算账号为空就行。
 
 ## 📜 许可证
 

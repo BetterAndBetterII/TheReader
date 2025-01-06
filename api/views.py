@@ -361,7 +361,7 @@ def list_projects(request):
         'projects': projects_data
     })
 
-@require_superuser
+@require_upload_permission
 def create_project(request):
     if request.method != 'POST':
         return JsonResponse({'error': '方法不允许'}, status=405)
@@ -457,7 +457,7 @@ def list_collections(request, project_id):
         logger.error(f"获取集合列表失败: {str(e)}")
         return JsonResponse({'error': '获取集合列表失败'}, status=500)
 
-@require_superuser
+@require_upload_permission
 def create_collection(request, project_id):
     if request.method != 'POST':
         return JsonResponse({'error': '方法不允许'}, status=405)

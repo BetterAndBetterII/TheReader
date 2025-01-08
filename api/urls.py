@@ -33,4 +33,6 @@ urlpatterns = [
     path('permissions/login/', views.login, name='login'),
     path('permissions/logout/', views.logout, name='logout'),
     path('permissions/change_password/', views.change_password, name='change_password'),
+    # 公式解析器相关的端点
+    path('parse-latex', views.parse_latex, name='parse_latex'),
 ]

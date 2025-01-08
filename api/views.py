@@ -558,3 +558,40 @@ def generate_mindmap(request):
     # 去掉markdown的代码块
     clean_response = response['text'].replace('```', '').replace('```markdown', '')
     return JsonResponse({'message': '思维导图生成成功', 'mindmap': clean_response})
+
+import base64
+from prepdocs.parse_page import DocsIngester
+import tempfile
+
+@require_use_api_permission
+def parse_latex(request):
+    prompt = "You are a helpful assistant that can convert all content in the image to prettified markdown text in natural reading order. You are allow to use list, table, equation, etc. You must use $..$ or $$..$$ to wrap the formulas. Do not output any other text. Please convert the following image to markdown text: "
+    gemini_client_pool: ClientPool = global_env['gemini_client_pool']
+    if not gemini_client_pool._get_clients():
+        return JsonResponse({'error': 'No GeminiClient available. Please check your API keys and permissions.'}, status=500)
+    file = request.FILES.get('file')
+    file_type = request.POST.get('type')
+    if file_type == 'application/pdf':
+        file_path = tempfile.mktemp(suffix=".pdf")
+        with open(file_path, 'wb') as f:
+            f.write(file.read())
+        ingester = DocsIngester()
+        section = ingester.process_document(file_path, "latex.pdf")
+        results = ""
+        for page in section.pages:
+            response = gemini_client_pool.execute_with_retry(GeminiClient.chat_with_image, prompt, page.file_path, "path")
+            latex = response['text']
+            if latex.startswith('```'):
+                latex = "\n".join(latex.split('\n')[1:-1])
+            results += f"{latex}\n\n"
+        return JsonResponse({'message': '公式解析成功', 'markdown': results})
+    elif file_type in ['image/png', 'image/jpg', 'image/jpeg']:
+        # 将二进制文件转化为base64
+        base64_file = base64.b64encode(file.read()).decode('utf-8')
+        response = gemini_client_pool.execute_with_retry(GeminiClient.chat_with_image, prompt, base64_file, "base64")
+        latex = response['text']
+        if latex.startswith('```'):
+            latex = "\n".join(latex.split('\n')[1:-1])
+        return JsonResponse({'message': '公式解析成功', 'markdown': latex})
+    else:
+        return JsonResponse({'error': '不支持的文件类型'}, status=400)

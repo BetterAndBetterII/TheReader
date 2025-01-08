@@ -3,6 +3,7 @@ import './App.css';
 import ReaderPage from './pages/ReaderPage/ReaderPage';
 import SettingsPage from './pages/SettingsPage/SettingsPage';
 import DocumentPage from './pages/DocumentPage/DocumentPage';
+import LatexPage from './pages/LatexPage/LatexPage';
 import axios from 'axios';
 
 function App() {
@@ -93,6 +94,12 @@ function App() {
             文档管理
           </button>
           <button 
+            className={`nav-button ${currentPage === 'latex' ? 'active' : ''}`}
+            onClick={() => setCurrentPage('latex')}
+          >
+            公式解析器
+          </button>
+          <button 
             className={`nav-button ${currentPage === 'settings' ? 'active' : ''}`}
             onClick={() => setCurrentPage('settings')}
           >
@@ -141,6 +148,9 @@ function App() {
         {currentPage === 'settings' && <SettingsPage permissionChallenge={permissionChallenge}/>}
         {currentPage === 'upload' && (
           <DocumentPage onViewDocument={handleViewDocument} permissionChallenge={permissionChallenge} />
+        )}
+        {currentPage === 'latex' && (
+          <LatexPage />
         )}
       </main>
     </div>

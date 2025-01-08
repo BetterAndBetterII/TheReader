@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 def get_parse_markdown_system_prompt() -> str:
     return """
-You are a markdown parser, convert images to markdown format. Format tables using markdown tables, and use $..$ or $$..$$ to wrap formulas, prevent using html tags. Replace images with as accurate descriptions as possible, and never output image links.
+You are a markdown parser, convert images to markdown format. Format tables using markdown tables, and use $..$ or $$..$$ to wrap formulas, prevent using html tags. Replace images with as accurate descriptions as possible, and never output image links. Only ignore prescript, postscript and small icons in them at the very beginning or end of the image.
 """
 
 def process_single_page(client_pool, page):

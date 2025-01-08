@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Viewer, Worker } from '@react-pdf-viewer/core';
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
 import { searchPlugin } from '@react-pdf-viewer/search';
 import { zoomPlugin } from '@react-pdf-viewer/zoom';
+import { pageNavigationPlugin } from '@react-pdf-viewer/page-navigation';
 import TranslateSection from './TranslateSection';
 
 // Import styles
@@ -18,6 +19,7 @@ const PDFReader = ({ url, onPageChange, documentId, currentPageContentChanged, t
   const [isDraggingHorizontal, setIsDraggingHorizontal] = useState(false);
   const [viewerHeight, setViewerHeight] = useState(55); // 默认70%的高度
   const [viewerWidth, setViewerWidth] = useState(55); // 默认70%的宽度
+  const viewerRef = useRef(null);
 
   // 创建插件实例
   const defaultLayoutPluginInstance = defaultLayoutPlugin({
@@ -89,6 +91,13 @@ const PDFReader = ({ url, onPageChange, documentId, currentPageContentChanged, t
     }
   }, [isTranslateOnRight]);
 
+  const pageNavigationPluginInstance = pageNavigationPlugin();
+  const JumpTo = (pageIndex) => {
+    setCurrentPage(pageIndex);
+    console.log(pageIndex);
+    pageNavigationPluginInstance.jumpToPage(pageIndex - 1);
+  };
+
   return (
     <div className={`pdf-reader-container ${isTranslateOnRight ? 'pdf-reader-container-right' : ''}`}
         onMouseMove={handleVerticalDrag}
@@ -108,7 +117,9 @@ const PDFReader = ({ url, onPageChange, documentId, currentPageContentChanged, t
                 defaultLayoutPluginInstance,
                 searchPluginInstance,
                 zoomPluginInstance,
+                pageNavigationPluginInstance
               ]}
+              ref={viewerRef}
             />
           </div>
         </Worker>
@@ -119,7 +130,14 @@ const PDFReader = ({ url, onPageChange, documentId, currentPageContentChanged, t
           onMouseDown={handleVerticalDragStart}
         />
         <div className="translate-section-container">
-          <TranslateSection documentId={documentId} currentPage={currentPage} currentPageContentChanged={currentPageContentChanged} toggleTranslatePosition={toggleTranslatePosition} isTranslateOnRight={isTranslateOnRight}/>
+          <TranslateSection 
+            documentId={documentId} 
+            currentPage={currentPage} 
+            currentPageContentChanged={currentPageContentChanged} 
+            toggleTranslatePosition={toggleTranslatePosition} 
+            isTranslateOnRight={isTranslateOnRight}
+            JumpTo={JumpTo}
+          />
         </div>
       </> : <>
         <div 
@@ -127,7 +145,14 @@ const PDFReader = ({ url, onPageChange, documentId, currentPageContentChanged, t
           onMouseDown={handleHorizontalDragStart}
         />
         <div className="translate-section-container-right">
-          <TranslateSection documentId={documentId} currentPage={currentPage} currentPageContentChanged={currentPageContentChanged} toggleTranslatePosition={toggleTranslatePosition} isTranslateOnRight={isTranslateOnRight}/>
+          <TranslateSection 
+            documentId={documentId} 
+            currentPage={currentPage} 
+            currentPageContentChanged={currentPageContentChanged} 
+            toggleTranslatePosition={toggleTranslatePosition} 
+            isTranslateOnRight={isTranslateOnRight}
+            JumpTo={JumpTo}
+          />
         </div>
       </>}
     </div>

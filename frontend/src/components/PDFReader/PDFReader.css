@@ -21,6 +21,12 @@
   overflow: hidden;
 }
 
+@media (max-height: 768px) {
+  .pdf-viewer-section {
+    max-height: 85%;
+  }
+}
+
 .pdf-reader {
   height: 100%;
   overflow: auto;

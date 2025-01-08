@@ -136,6 +136,7 @@
   background-color: #f9f9f9;
   border-radius: 4px;
   padding: 16px;
+  position: relative;
 }
 
 .loading {
@@ -380,3 +381,85 @@
 .export-button svg {
   font-size: 18px;
 } 
+
+.translate-body {
+  position: relative;
+}
+
+.control-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.clipboard-buttons {
+  display: flex;
+  gap: 8px;
+  z-index: 1000;
+  margin-left: auto;
+}
+
+.clipboard-buttons button {
+  background-color: #f0f0f0;
+  color: #333;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.clipboard-buttons button:hover {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.clipboard-buttons button svg {
+  font-size: 14px;
+  transform: scale(1);
+  transition: transform 0.3s ease, opacity 0.3s ease, scale 0.3s ease;
+}
+
+.clipboard-buttons button:hover svg {
+  transform: scale(1.1);
+}
+
+.nav-page-buttons {
+  display: flex;
+  gap: 8px;
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-page-buttons button {
+  background-color: #f0f0f0;
+  color: #333;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-page-buttons button:hover {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.nav-page-buttons button svg {
+  font-size: 14px;
+}
+
+.nav-page-buttons button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.nav-page-buttons button:disabled svg {
+  color: #cccccc;
+}

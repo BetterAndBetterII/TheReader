@@ -10,8 +10,14 @@ import { Markmap } from 'markmap-view';
 import CloseIcon from '@mui/icons-material/Close';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import DownloadIcon from '@mui/icons-material/Download';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import CopyAllIcon from '@mui/icons-material/CopyAll';
+import Tooltip from '@mui/material/Tooltip';
+import CheckIcon from '@mui/icons-material/Check';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
-const TranslateSection = ({ documentId, currentPage, currentPageContentChanged, toggleTranslatePosition, isTranslateOnRight }) => {
+const TranslateSection = ({ documentId, currentPage, currentPageContentChanged, toggleTranslatePosition, isTranslateOnRight, JumpTo }) => {
   const [documentInfo, setDocumentInfo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isChineseMode, setIsChineseMode] = useState(true);
@@ -19,6 +25,8 @@ const TranslateSection = ({ documentId, currentPage, currentPageContentChanged, 
   const [mindmapData, setMindmapData] = useState(null);
   const [showMindmap, setShowMindmap] = useState(false);
   const [mindmapLoading, setMindmapLoading] = useState(false);
+  const [currentCopySuccess, setCurrentCopySuccess] = useState(false);
+  const [nearbyCopySuccess, setNearbyCopySuccess] = useState(false);
   const mindmapRef = useRef(null);
   const markmapRef = useRef(null);
 
@@ -47,19 +55,18 @@ const TranslateSection = ({ documentId, currentPage, currentPageContentChanged, 
     fetchDocumentInfo();
   }, [documentId]);
 
-  useEffect(() => {
-    // 获取前后，当前页的内容
+  const getNearbyPageContent = () => {
     const totalPages = documentInfo?.chinese_sections?.pages?.length || 0;
-
     const previousPage = currentPage - 1 < 1 ? 1 : currentPage - 1;
     const nextPage = currentPage + 1 > totalPages ? totalPages : currentPage + 1;
-
     const currentPageContent = getPageContent(currentPage);
     const previousPageContent = getPageContent(previousPage);
     const nextPageContent = getPageContent(nextPage);
+    return `${previousPageContent}\n\n${currentPageContent}\n\n${nextPageContent}`;
+  };
 
-    const fullContent = `${previousPageContent}\n\n${currentPageContent}\n\n${nextPageContent}`;
-    currentPageContentChanged(fullContent);
+  useEffect(() => {
+    currentPageContentChanged(getNearbyPageContent());
   }, [currentPage, documentInfo, isChineseMode]);
 
   const getPageContent = (page) => {
@@ -241,6 +248,36 @@ const TranslateSection = ({ documentId, currentPage, currentPageContentChanged, 
     img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
   };
 
+  const handleCopyCurrentPage = () => {
+    const currentPageContent = getCurrentContent();
+    navigator.clipboard.writeText(currentPageContent);
+    setCurrentCopySuccess(true);
+    setTimeout(() => {
+      setCurrentCopySuccess(false);
+    }, 2000);
+  };
+
+  const handleCopyNearbyPage = () => {
+    const nearbyPageContent = getNearbyPageContent();
+    navigator.clipboard.writeText(nearbyPageContent);
+    setNearbyCopySuccess(true);
+    setTimeout(() => {
+      setNearbyCopySuccess(false);
+    }, 2000);
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      JumpTo(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < documentInfo?.chinese_sections?.pages?.length) {
+      JumpTo(currentPage + 1);
+    }
+  };
+
   return (
     <div className={`translate-section ${isTranslateOnRight ? 'translate-section-right' : ''}`}>
       <div className={`translate-header ${isTranslateOnRight ? 'translate-header-right' : ''}`}>
@@ -276,7 +313,33 @@ const TranslateSection = ({ documentId, currentPage, currentPageContentChanged, 
         </div>
         <span className="page-indicator">当前页: {currentPage}</span>
       </div>
-      <div className="translate-content">
+        <div className="translate-content">
+        <div className="control-buttons">
+          <div className="nav-page-buttons">
+            <Tooltip title="上一页">
+              <button onClick={handlePreviousPage}>
+              <ArrowBackIcon />
+            </button>
+          </Tooltip>
+          <Tooltip title="下一页">
+            <button onClick={handleNextPage}>
+              <ArrowForwardIcon />
+            </button>
+          </Tooltip>
+          </div>
+          <div className="clipboard-buttons">
+            <Tooltip title="复制当前页内容">
+              <button onClick={handleCopyCurrentPage} className={`${currentCopySuccess ? 'success' : ''}`}>
+                {currentCopySuccess ? <CheckIcon /> : <ContentCopyIcon />}
+              </button>
+            </Tooltip>
+            <Tooltip title="复制附近内容">
+              <button onClick={handleCopyNearbyPage} className={`${nearbyCopySuccess ? 'success' : ''}`}>
+                {nearbyCopySuccess ? <CheckIcon /> : <CopyAllIcon />}
+              </button>
+            </Tooltip>
+          </div>
+        </div>
         <div className="translation-text">
           {showRawText ? (
             <pre className="raw-text">{getCurrentContent()}</pre>
@@ -288,8 +351,8 @@ const TranslateSection = ({ documentId, currentPage, currentPageContentChanged, 
               {getCurrentContent()}
             </ReactMarkdown>
           )}
+          </div>
         </div>
-      </div>
 
       {showMindmap && (
         <div className="mindmap-modal">

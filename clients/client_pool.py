@@ -40,7 +40,7 @@ class ClientPool:
                  clients: List[GeminiClient] = None,
                  max_retries: int = 9999999,
                  retry_delay: float = 2.0,
-                 max_concurrent_requests: int = 50):
+                 max_concurrent_requests: int = 2):
         """
         初始化客户端池
         :param clients: 客户端列表

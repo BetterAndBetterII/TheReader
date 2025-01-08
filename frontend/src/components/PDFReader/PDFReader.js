@@ -5,6 +5,7 @@ import { searchPlugin } from '@react-pdf-viewer/search';
 import { zoomPlugin } from '@react-pdf-viewer/zoom';
 import { pageNavigationPlugin } from '@react-pdf-viewer/page-navigation';
 import TranslateSection from './TranslateSection';
+import ChatBox from '../ChatBox/ChatBox';
 
 // Import styles
 import '@react-pdf-viewer/core/lib/styles/index.css';
@@ -19,7 +20,10 @@ const PDFReader = ({ url, onPageChange, documentId, currentPageContentChanged, t
   const [isDraggingHorizontal, setIsDraggingHorizontal] = useState(false);
   const [viewerHeight, setViewerHeight] = useState(55); // 默认70%的高度
   const [viewerWidth, setViewerWidth] = useState(55); // 默认70%的宽度
+  // 切换tab
+  const [tab, setTab] = useState('reader');  // reader, chatbox
   const viewerRef = useRef(null);
+  const [pageContent, setPageContent] = useState('');
 
   // 创建插件实例
   const defaultLayoutPluginInstance = defaultLayoutPlugin({
@@ -145,14 +149,35 @@ const PDFReader = ({ url, onPageChange, documentId, currentPageContentChanged, t
           onMouseDown={handleHorizontalDragStart}
         />
         <div className="translate-section-container-right">
-          <TranslateSection 
-            documentId={documentId} 
-            currentPage={currentPage} 
-            currentPageContentChanged={currentPageContentChanged} 
-            toggleTranslatePosition={toggleTranslatePosition} 
-            isTranslateOnRight={isTranslateOnRight}
-            JumpTo={JumpTo}
-          />
+          <div className="tab-switcher">
+            <button 
+              className={`tab-button ${tab === 'reader' ? 'active' : ''}`}
+              onClick={() => setTab('reader')}
+            >
+              翻译
+            </button>
+            <button 
+              className={`tab-button ${tab === 'chatbox' ? 'active' : ''}`}
+              onClick={() => setTab('chatbox')}
+            >
+              聊天
+            </button>
+          </div>
+          {tab === 'reader' ? (
+            <TranslateSection 
+              documentId={documentId} 
+              currentPage={currentPage} 
+              currentPageContentChanged={(content) => {
+                setPageContent(content);
+                currentPageContentChanged(content);
+              }}
+              toggleTranslatePosition={toggleTranslatePosition} 
+              isTranslateOnRight={isTranslateOnRight}
+              JumpTo={JumpTo}
+            />
+          ) : (
+            <ChatBox pageContent={pageContent} className="chat-box" />
+          )}
         </div>
       </>}
     </div>

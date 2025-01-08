@@ -12,6 +12,8 @@
 
 .translate-section-right {
   margin-left: 10px;
+  width: 90%;
+  height: calc(100% - 165px);
 }
 
 .translate-header {

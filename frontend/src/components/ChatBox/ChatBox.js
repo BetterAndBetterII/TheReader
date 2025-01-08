@@ -3,7 +3,7 @@ import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import './ChatBox.css';
 
-const ChatBox = ({ pageContent }) => {
+const ChatBox = ({ pageContent, className }) => {
     const [input, setInput] = useState('');
     const [response, setResponse] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -88,7 +88,7 @@ const ChatBox = ({ pageContent }) => {
                 content: msg.content
             }));
 
-            const fullContent = `你需要根据历史聊天记录回答我的问题。务必使用与课程教案相同的语言回答我。<|历史记录|>\n${messages.map(msg => `<|${msg.role}|>\n${msg.content.map(item => item.text || "").join('')}`).join('\n')}\n<|课程教案相关内容：|>\n${pageContent}\n<|当前问题|>\n${input}`;
+            const fullContent = `你是辅导我课程内容的助手，需要回答我的课业问题。你需要全面地回答我的问题。请使用与课程教案相同的语言回答我。<|历史记录|>\n${messages.map(msg => `<|${msg.role}|>\n${msg.content.map(item => item.text || "").join('')}`).join('\n')}\n<|课程教案相关内容：|>\n${pageContent}\n<|当前问题|>\n${input}`;
 
             const result = await axios.post('/api/gemini_chat_image', {
                 prompt: fullContent,
@@ -145,7 +145,7 @@ const ChatBox = ({ pageContent }) => {
     };
 
     return (
-        <div className="chat-container">
+        <div className={`chat-container ${className}`} style={{ height: className ? 'calc(100% - 125px)' : 'calc(100% - 80px)' }}>
             {showConfirmDialog && (
                 <div className="confirm-dialog">
                     <div className="confirm-dialog-content">

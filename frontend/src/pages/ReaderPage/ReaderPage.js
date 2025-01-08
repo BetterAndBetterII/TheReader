@@ -31,6 +31,18 @@ const ReaderPage = ({ documentId, permissionChallenge }) => {
     fetchPdfUrl();
   }, [documentId]);
 
+  useEffect(() => {
+    // 读取localstorage中的用户数据
+    const isTranslateOnRight = localStorage.getItem('isTranslateOnRight');
+    if (isTranslateOnRight) {
+      setIsTranslateOnRight(true);
+      setReaderWidth(100);
+    } else {
+      setIsTranslateOnRight(false);
+      setReaderWidth(75);
+    }
+  }, []);
+
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
@@ -74,9 +86,11 @@ const ReaderPage = ({ documentId, permissionChallenge }) => {
     if (isTranslateOnRight) {
       setIsTranslateOnRight(false);
       setReaderWidth(75);
+      localStorage.setItem('isTranslateOnRight', false);
     } else {
       setIsTranslateOnRight(true);
       setReaderWidth(100);
+      localStorage.setItem('isTranslateOnRight', true);
     }
   };
 

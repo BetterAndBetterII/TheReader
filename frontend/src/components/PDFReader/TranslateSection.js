@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import rehypeRaw from 'rehype-raw';
 import 'katex/dist/katex.min.css';
 import { Transformer } from 'markmap-lib';
 import { Markmap } from 'markmap-view';
@@ -346,7 +347,7 @@ const TranslateSection = ({ documentId, currentPage, currentPageContentChanged, 
           ) : (
             <ReactMarkdown 
               remarkPlugins={[remarkGfm, remarkMath]}
-              rehypePlugins={[rehypeKatex]}
+              rehypePlugins={[rehypeKatex, rehypeRaw]}
             >
               {getCurrentContent()}
             </ReactMarkdown>

@@ -5,13 +5,14 @@ import json
 from backend.setup_env import global_env
 from clients.gemini_client import GeminiClient
 from clients.client_pool import ClientPool
-from .models import ApiKey, Document, Task, Project, Collection
+from .models import ApiKey, Document, Task, Project, Collection, MindMap
 from pipeline.document_pipeline import DocumentPipeline
 import tempfile
 import logging
 import io
 from pathlib import Path
 from constance import config
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -546,6 +547,11 @@ def generate_mindmap(request):
     data = json.loads(request.body)
     document_id = data.get('docid')
     prompt = data.get('prompt')
+    retry = data.get('retry', False)
+
+    mindmap = MindMap.objects.filter(document_id=document_id)
+    if mindmap.exists() and not retry:
+        return JsonResponse({'message': '思维导图已存在', 'mindmap': mindmap.first().mind_map_json})
 
     system_prompt = "You are a helpful assistant that can generate mindmaps. You should use n-level markdown to generate the mindmap. All the items should be brief and concise."
     user_prompt = f"Generate a mindmap for the following text: {prompt}"
@@ -557,6 +563,13 @@ def generate_mindmap(request):
 
     # 去掉markdown的代码块
     clean_response = response['text'].replace('```', '').replace('```markdown', '')
+    if retry:
+        mindmap = MindMap.objects.get(document_id=document_id)
+        mindmap.mind_map_json = clean_response
+        mindmap.created_at = timezone.now()
+        mindmap.save()
+    else:
+        MindMap.objects.create(title=f"MindMap for {document_id}", document_id=document_id, mind_map_json=clean_response)
     return JsonResponse({'message': '思维导图生成成功', 'mindmap': clean_response})
 
 import base64

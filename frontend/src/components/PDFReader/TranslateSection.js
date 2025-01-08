@@ -156,7 +156,7 @@ const TranslateSection = ({ documentId, currentPage, currentPageContentChanged, 
     }
   };
 
-  const handleRegenerateMindmap = async () => {
+  const handleRegenerateMindmap = async (retry=false) => {
     setMindmapLoading(true);
     try {
       const allPagesContent = documentInfo?.chinese_sections?.pages?.map(page => page.content).join('\n\n');
@@ -167,7 +167,8 @@ const TranslateSection = ({ documentId, currentPage, currentPageContentChanged, 
         },
         body: JSON.stringify({
           docid: documentId,
-          prompt: allPagesContent
+          prompt: allPagesContent,
+          retry: retry
         })
       });
 
@@ -370,7 +371,7 @@ const TranslateSection = ({ documentId, currentPage, currentPageContentChanged, 
                 </button>
                 <button 
                   className="regenerate-button"
-                  onClick={handleRegenerateMindmap}
+                  onClick={() => handleRegenerateMindmap(true)}
                   disabled={mindmapLoading}
                 >
                   <RefreshIcon />

@@ -126,3 +126,15 @@ class Project(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+class MindMap(models.Model):
+    title = models.CharField(max_length=255, help_text='思维导图标题')
+    created_at = models.DateTimeField(auto_now_add=True, help_text='创建时间')
+    document_id = models.IntegerField(default=0, help_text='关联的文档ID')
+    mind_map_json = models.JSONField(default=dict, help_text='思维导图JSON')
+
+    def __str__(self):
+        return f"{self.title} - {self.document_id}"
+
+    class Meta:
+        ordering = ['-created_at']

@@ -6,10 +6,18 @@
   overflow: hidden;
 }
 
+.pdf-reader-container-right {
+  flex-direction: row;
+}
+
+.pdf-viewer-section-right {
+  flex-direction: row;
+}
+
 .pdf-viewer-section {
   position: relative;
   min-height: 20%;
-  max-height: 80%;
+  max-height: 90%;
   overflow: hidden;
 }
 
@@ -44,7 +52,37 @@
   border-radius: 1px;
 }
 
+.resizer-horizontal {
+  height: 100%;
+  width: 8px;
+  background-color: #f0f0f0;
+  cursor: col-resize;
+  position: relative;
+  transition: background-color 0.3s;
+}
+
+.resizer-horizontal:hover,
+.resizer-horizontal:active {
+  background-color: #1890ff;
+}
+
+.resizer-horizontal::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 30px;
+  background-color: #999;
+}
+
 .translate-section-container {
+  overflow: hidden;
+  flex: 1;
+}
+
+.translate-section-container-right {
   overflow: hidden;
   flex: 1;
 }

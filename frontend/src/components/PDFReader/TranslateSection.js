@@ -11,7 +11,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import DownloadIcon from '@mui/icons-material/Download';
 
-const TranslateSection = ({ documentId, currentPage, currentPageContentChanged }) => {
+const TranslateSection = ({ documentId, currentPage, currentPageContentChanged, toggleTranslatePosition, isTranslateOnRight }) => {
   const [documentInfo, setDocumentInfo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isChineseMode, setIsChineseMode] = useState(true);
@@ -242,11 +242,11 @@ const TranslateSection = ({ documentId, currentPage, currentPageContentChanged }
   };
 
   return (
-    <div className="translate-section">
-      <div className="translate-header">
+    <div className={`translate-section ${isTranslateOnRight ? 'translate-section-right' : ''}`}>
+      <div className={`translate-header ${isTranslateOnRight ? 'translate-header-right' : ''}`}>
         <div className="translate-title">
-          <h3>Summary</h3>
-          <div className="button-group">
+          {!isTranslateOnRight && <h3>Summary</h3>}
+          <div className={`button-group ${isTranslateOnRight ? 'button-group-right' : ''}`}>
             <button 
               className={`language-toggle ${isChineseMode ? 'chinese' : 'english'}`}
               onClick={toggleLanguage}
@@ -260,11 +260,17 @@ const TranslateSection = ({ documentId, currentPage, currentPageContentChanged }
               {showRawText ? '显示格式化' : '显示原文'}
             </button>
             <button 
-              className="mindmap-toggle"
+              className={`mindmap-toggle ${mindmapLoading ? 'loading' : ''}`}
               onClick={handleMindmapClick}
               disabled={mindmapLoading}
             >
               {mindmapLoading ? '生成中...' : '生成思维导图'}
+            </button>
+            <button 
+              className="layout-toggle"
+              onClick={toggleTranslatePosition}
+            >
+              切换Summary位置
             </button>
           </div>
         </div>

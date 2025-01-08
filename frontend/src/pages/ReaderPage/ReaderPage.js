@@ -10,6 +10,8 @@ const ReaderPage = ({ documentId, permissionChallenge }) => {
   const [readerWidth, setReaderWidth] = useState(75); // 默认75%的宽度
   const [pdfUrl, setPdfUrl] = useState(null);
   const [pageContent, setPageContent] = useState('');
+  // 是否切换翻译在右侧
+  const [isTranslateOnRight, setIsTranslateOnRight] = useState(false);
 
   useEffect(() => {
     const fetchPdfUrl = async () => {
@@ -68,6 +70,16 @@ const ReaderPage = ({ documentId, permissionChallenge }) => {
     setPageContent(pageContent);
   };
 
+  const toggleTranslatePosition = () => {
+    if (isTranslateOnRight) {
+      setIsTranslateOnRight(false);
+      setReaderWidth(75);
+    } else {
+      setIsTranslateOnRight(true);
+      setReaderWidth(100);
+    }
+  };
+
   return (
     <div className="reader-page" 
         onMouseMove={handleHorizontalDrag}
@@ -82,18 +94,23 @@ const ReaderPage = ({ documentId, permissionChallenge }) => {
           onPageChange={handlePageChange}
           documentId={documentId}
           currentPageContentChanged={currentPageContentChanged}
+          toggleTranslatePosition={toggleTranslatePosition}
+          isTranslateOnRight={isTranslateOnRight}
         />
       </div>
-      <div 
-        className="resizer-horizontal"
-        onMouseDown={handleHorizontalDragStart}
-      />
+      {!isTranslateOnRight && <>
+        <div 
+          className="resizer-horizontal"
+          onMouseDown={handleHorizontalDragStart}
+        />
       <div 
         className="chat-section"
         style={{ width: `${100 - readerWidth}%`, height: '100%' }}
       >
-        <ChatBox pageContent={pageContent} />
-      </div>
+          <ChatBox pageContent={pageContent} />
+        </div>
+      </>
+      }
     </div>
   );
 };

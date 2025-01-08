@@ -10,6 +10,10 @@
   flex-direction: column;
 }
 
+.translate-section-right {
+  margin-left: 10px;
+}
+
 .translate-header {
   display: flex;
   justify-content: space-between;
@@ -20,6 +24,14 @@
   flex-shrink: 0;
 }
 
+.translate-header-right {
+  /* 按钮分两行 */
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+}
+
 .translate-title {
   display: flex;
   align-items: center;
@@ -28,7 +40,23 @@
 
 .button-group {
   display: flex;
+  align-items: center;
   gap: 8px;
+  height: 100%;
+  overflow: scroll;
+  scrollbar-width: none;
+}
+
+.button-group-right {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.button-group button {
+  /* 高度固定，若空间不足，字体变小 */
+  height: 100%;
+  font-size: 14px;
+  white-space: nowrap;
 }
 
 .translate-header h3 {
@@ -38,7 +66,9 @@
 }
 
 .language-toggle,
-.format-toggle {
+.format-toggle,
+.layout-toggle,
+.mindmap-toggle {
   padding: 6px 12px;
   border-radius: 4px;
   border: 1px solid #ddd;
@@ -49,7 +79,9 @@
 }
 
 .language-toggle:hover,
-.format-toggle:hover {
+.format-toggle:hover,
+.mindmap-toggle:hover,
+.layout-toggle:hover {
   background-color: #f5f5f5;
 }
 
@@ -71,6 +103,26 @@
 .format-toggle.raw {
   color: #fa8c16;
   border-color: #fa8c16;
+}
+
+.mindmap-toggle {
+  color: #52c41a;
+  border-color: #52c41a;
+}
+
+.mindmap-toggle.loading {
+  color: #1890ff;
+  border-color: #1890ff;
+}
+
+.mindmap-toggle:disabled {
+  color: #cccccc;
+  cursor: not-allowed;
+}
+
+.layout-toggle {
+  color: #1890ff;
+  border-color: #1890ff;
 }
 
 .page-indicator {
@@ -272,26 +324,6 @@
   width: 100%;
   height: 100%;
   min-height: 600px;
-}
-
-.mindmap-toggle {
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
-}
-
-.mindmap-toggle:hover {
-  background-color: #45a049;
-}
-
-.mindmap-toggle:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
 }
 
 .modal-actions {

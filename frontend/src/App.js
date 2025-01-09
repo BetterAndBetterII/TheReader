@@ -5,6 +5,9 @@ import SettingsPage from './pages/SettingsPage/SettingsPage';
 import DocumentPage from './pages/DocumentPage/DocumentPage';
 import LatexPage from './pages/LatexPage/LatexPage';
 import axios from 'axios';
+import { clarity } from 'react-microsoft-clarity';
+
+clarity.init("pr8nj6r20z");
 
 function App() {
   const [documentId, setDocumentId] = useState(null);

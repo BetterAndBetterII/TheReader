@@ -237,6 +237,8 @@ def list_documents(request):
         'url': f'/api/documents/view/{doc.id}.pdf'
     } for doc in documents]
     
+    # 排序
+    documents_data.sort(key=lambda x: x['title'])
     return JsonResponse({
         'documents': documents_data
     })
@@ -358,6 +360,9 @@ def list_projects(request):
         'collections_count': project.collections.count()
     } for project in projects]
     
+    # 排序
+    projects_data.sort(key=lambda x: x['name'])
+    
     return JsonResponse({
         'projects': projects_data
     })
@@ -449,6 +454,9 @@ def list_collections(request, project_id):
             'documents_count': collection.documents.count()
         } for collection in collections]
         
+        # 排序
+        collections_data.sort(key=lambda x: x['name'])
+        
         return JsonResponse({
             'collections': collections_data
         })
@@ -521,6 +529,9 @@ def get_collection(request, project_id, collection_id):
             'status': doc.linked_task.status if hasattr(doc, 'linked_task') else None,
             'thumbnail_url': f'/api/documents/thumbnail/{doc.id}.png'
         } for doc in documents]
+        
+        # 排序
+        documents_data.sort(key=lambda x: x['title'])
         
         collection_data = {
             'id': collection.id,

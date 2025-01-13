@@ -1,6 +1,10 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import rehypeRaw from 'rehype-raw';
 import './ChatBox.css';
 
 const ChatBox = ({ pageContent, className }) => {
@@ -173,7 +177,10 @@ const ChatBox = ({ pageContent, className }) => {
                                 <img src={item.image_url.url} alt="已粘贴的图片" style={{ maxWidth: '100px', maxHeight: '100px' }} />
                             </div> : null)}
                             {message.content.length > 0 && <div className={`message-content markdown-body ${message.role === 'user' ? 'user-message-content' : 'assistant-message-content'}`}> 
-                                {message.role === 'assistant' ? <ReactMarkdown>{message.content[0].text}</ReactMarkdown> : message.content[0].text || ""}
+                                {message.role === 'assistant' ? <ReactMarkdown
+                                                                    remarkPlugins={[remarkGfm, remarkMath]}
+                                                                    rehypePlugins={[rehypeKatex, rehypeRaw]}
+                                                                >{message.content[0].text}</ReactMarkdown> : message.content[0].text || ""}
                             </div>}
                         </div>
                     ))

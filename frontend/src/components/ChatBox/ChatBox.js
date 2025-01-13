@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -7,7 +7,7 @@ import rehypeKatex from 'rehype-katex';
 import rehypeRaw from 'rehype-raw';
 import './ChatBox.css';
 
-const ChatBox = ({ pageContent, className }) => {
+const ChatBox = forwardRef(({ pageContent, className }, ref) => {
     const [input, setInput] = useState('');
     const [response, setResponse] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -53,17 +53,14 @@ const ChatBox = ({ pageContent, className }) => {
         }
     }, [chatHistory, isLoading]);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!input.trim() && !imageData) return;
-
+    const sendMessage = async (inputValue) => {
         // 添加用户消息到历史记录
         const userMessage = {
             role: 'user',
             content: [
                 {
                     "type": "text",
-                    "text": input.trim()
+                    "text": inputValue.trim()
                 },
                 ...(imageData ? [{
                     "type": "image_url",
@@ -92,7 +89,7 @@ const ChatBox = ({ pageContent, className }) => {
                 content: msg.content
             }));
 
-            const fullContent = `你是辅导我课程内容的助手，需要回答我的课业问题。你需要全面地回答我的问题。请使用与课程教案相同的语言回答我。<|历史记录|>\n${messages.map(msg => `<|${msg.role}|>\n${msg.content.map(item => item.text || "").join('')}`).join('\n')}\n<|课程教案相关内容：|>\n${pageContent}\n<|当前问题|>\n${input}`;
+            const fullContent = `你是辅导我课程内容的助手，需要回答我的课业问题。你需要全面地回答我的问题。请使用与课程教案相同的语言回答我。<|历史记录|>\n${messages.map(msg => `<|${msg.role}|>\n${msg.content.map(item => item.text || "").join('')}`).join('\n')}\n<|课程教案相关内容：|>\n${pageContent}\n<|当前问题|>\n${inputValue}`;
 
             const result = await axios.post('/api/gemini_chat_image', {
                 prompt: fullContent,
@@ -136,6 +133,13 @@ const ChatBox = ({ pageContent, className }) => {
         } finally {
             setIsLoading(false);
         }
+    }
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!input.trim() && !imageData) return;
+
+        sendMessage(input);
     };
 
     const handleClearHistory = () => {
@@ -147,6 +151,22 @@ const ChatBox = ({ pageContent, className }) => {
         setResponse('');
         setShowConfirmDialog(false);
     };
+
+    // 暴露方法给父组件
+    useImperativeHandle(ref, () => ({
+        // 翻译文本
+        handleTranslate: (text) => {
+            sendMessage(`请翻译以下文本：\n${text}`);
+        },
+        // 解释文本
+        handleExplain: (text) => {
+            sendMessage(`请解释以下文本的含义：\n${text}`);
+        },
+        // 解决
+        handleAsk: (text) => {
+            sendMessage(`请你解决下面的问题：\n${text}`);
+        }
+    }));
 
     return (
         <div className={`chat-container ${className}`} style={{ height: className ? 'calc(100% - 125px)' : 'calc(100% - 80px)' }}>
@@ -239,6 +259,6 @@ const ChatBox = ({ pageContent, className }) => {
             </form>
         </div>
     );
-};
+});
 
 export default ChatBox; 

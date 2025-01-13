@@ -6,6 +6,7 @@ import { zoomPlugin } from '@react-pdf-viewer/zoom';
 import { pageNavigationPlugin } from '@react-pdf-viewer/page-navigation';
 import TranslateSection from './TranslateSection';
 import ChatBox from '../ChatBox/ChatBox';
+import FloatingMenu from './FloatingMenu';
 
 // Import styles
 import '@react-pdf-viewer/core/lib/styles/index.css';
@@ -24,6 +25,36 @@ const PDFReader = ({ url, onPageChange, documentId, currentPageContentChanged, t
   const [tab, setTab] = useState('reader');  // reader, chatbox
   const viewerRef = useRef(null);
   const [pageContent, setPageContent] = useState('');
+  const [selectedText, setSelectedText] = useState('');
+  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+  const [showMenu, setShowMenu] = useState(false);
+  const chatBoxRef = useRef(null);
+
+  const getInitialPage = () => {
+    try{
+      const doc_info = JSON.parse(localStorage.getItem(`doc_${documentId}`));
+      if (doc_info && doc_info.pageNumber) {
+        return parseInt(doc_info.pageNumber);
+      }
+      return 1;
+    } catch(e) {
+      return 1;
+    }
+    
+  };
+
+  const getInitialZoom = () => {
+    try {
+      const doc_info = JSON.parse(localStorage.getItem(`doc_${documentId}`));
+      if (doc_info && doc_info.zoom) {
+        return parseFloat(doc_info.zoom);
+      }
+      return 1;
+    } catch(e) {
+      return 1;
+    }
+    
+  };
 
   // 创建插件实例
   const defaultLayoutPluginInstance = defaultLayoutPlugin({
@@ -41,6 +72,48 @@ const PDFReader = ({ url, onPageChange, documentId, currentPageContentChanged, t
     const pageNumber = e.currentPage + 1;
     setCurrentPage(pageNumber);
     onPageChange(pageNumber);
+    // storage current page
+    if(pageNumber !== 1) {
+      try {
+        const doc = JSON.parse(localStorage.getItem(`doc_${documentId}`));
+        if(doc) {
+          localStorage.setItem(`doc_${documentId}`, JSON.stringify({
+            ...doc,
+            "pageNumber": pageNumber,
+          }));
+        } else {
+          localStorage.setItem(`doc_${documentId}`, JSON.stringify({
+            "pageNumber": pageNumber,
+          }));
+        }
+      } catch (error) {
+        localStorage.setItem(`doc_${documentId}`, JSON.stringify({
+          "pageNumber": pageNumber,
+        }));
+      }
+    }
+  };
+
+  const handleZoomChange = (e) => {
+    if(e.scale) {
+      try {
+        const doc = JSON.parse(localStorage.getItem(`doc_${documentId}`));
+        if(doc) {
+          localStorage.setItem(`doc_${documentId}`, JSON.stringify({
+            ...doc,
+            "zoom": e.scale,
+          }));
+        } else {
+          localStorage.setItem(`doc_${documentId}`, JSON.stringify({
+            "zoom": e.scale,
+          }));
+        }
+      } catch (error) {
+        localStorage.setItem(`doc_${documentId}`, JSON.stringify({
+          "zoom": e.scale,
+        }));
+      }
+    }
   };
 
   const handleVerticalDragStart = () => {
@@ -102,11 +175,68 @@ const PDFReader = ({ url, onPageChange, documentId, currentPageContentChanged, t
     pageNavigationPluginInstance.jumpToPage(pageIndex - 1);
   };
 
+  useEffect(() => {
+    const handleTextSelection = () => {
+      const selection = window.getSelection();
+      const text = selection.toString().trim();
+      
+      if (text) {
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        setSelectedText(text);
+        setMenuPosition({
+          x: rect.left + (rect.width / 2),
+          y: rect.bottom + 10
+        });
+        setShowMenu(true);
+      } else {
+        setShowMenu(false);
+      }
+    };
+
+    document.addEventListener('mouseup', handleTextSelection);
+    return () => document.removeEventListener('mouseup', handleTextSelection);
+  }, []);
+
+  const handleTranslate = (text) => {
+    setTab('chatbox');
+    setShowMenu(false);
+    setTimeout(() => {
+      chatBoxRef.current?.handleTranslate(text);
+    }, 100);
+  };
+
+  const handleExplain = (text) => {
+    setTab('chatbox');
+    setShowMenu(false);
+    setTimeout(() => {
+      chatBoxRef.current?.handleExplain(text);
+    }, 100);
+  };
+
+  const handleAsk = (text) => {
+    setTab('chatbox');
+    setShowMenu(false);
+    setTimeout(() => {
+      chatBoxRef.current?.handleAsk(text);
+    }, 100);
+  };
+
   return (
     <div className={`pdf-reader-container ${isTranslateOnRight ? 'pdf-reader-container-right' : ''}`}
         onMouseMove={handleVerticalDrag}
         onMouseUp={handleVerticalDragEnd}
     >
+      {showMenu && (
+        <FloatingMenu
+          position={menuPosition}
+          selectedText={selectedText}
+          onTranslate={handleTranslate}
+          onExplain={handleExplain}
+          onAsk={handleAsk}
+          onClose={() => setShowMenu(false)}
+        />
+      )}
       <div 
         className={`pdf-viewer-section ${isTranslateOnRight ? 'pdf-viewer-section-right' : ''}`}
         style={{ height: `${viewerHeight}%`, width: `${viewerWidth}%` }}
@@ -116,7 +246,9 @@ const PDFReader = ({ url, onPageChange, documentId, currentPageContentChanged, t
             <Viewer
               fileUrl={url}
               onPageChange={handlePageChange}
-              defaultScale={1}
+              onZoom={handleZoomChange}
+              defaultScale={getInitialZoom()}
+              initialPage={getInitialPage() - 1}
               plugins={[
                 defaultLayoutPluginInstance,
                 searchPluginInstance,
@@ -175,9 +307,10 @@ const PDFReader = ({ url, onPageChange, documentId, currentPageContentChanged, t
               isTranslateOnRight={isTranslateOnRight}
               JumpTo={JumpTo}
             />
-          ) : (
-            <ChatBox pageContent={pageContent} className="chat-box" />
-          )}
+          ) : null}
+          <div style={{ display: tab === 'chatbox' ? 'block' : 'none', height: '100%' }}>
+            <ChatBox ref={chatBoxRef} pageContent={pageContent} className="chat-box" />
+          </div>
         </div>
       </>}
     </div>

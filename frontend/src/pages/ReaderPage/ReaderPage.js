@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import PDFReader from '../../components/PDFReader/PDFReader';
 import ChatBox from '../../components/ChatBox/ChatBox';
@@ -12,6 +12,7 @@ const ReaderPage = ({ documentId, permissionChallenge }) => {
   const [pageContent, setPageContent] = useState('');
   // 是否切换翻译在右侧
   const [isTranslateOnRight, setIsTranslateOnRight] = useState(false);
+  const chatBoxRef = useRef(null);
 
   useEffect(() => {
     const fetchPdfUrl = async () => {
@@ -110,6 +111,7 @@ const ReaderPage = ({ documentId, permissionChallenge }) => {
           currentPageContentChanged={currentPageContentChanged}
           toggleTranslatePosition={toggleTranslatePosition}
           isTranslateOnRight={isTranslateOnRight}
+          isolatedChatBoxRef={chatBoxRef}
         />
       </div>
       {!isTranslateOnRight && <>
@@ -121,7 +123,7 @@ const ReaderPage = ({ documentId, permissionChallenge }) => {
         className="chat-section"
         style={{ width: `${100 - readerWidth}%`, height: '100%' }}
       >
-          <ChatBox pageContent={pageContent} />
+          <ChatBox pageContent={pageContent} ref={chatBoxRef} />
         </div>
       </>
       }

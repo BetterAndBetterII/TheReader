@@ -15,7 +15,7 @@ import '@react-pdf-viewer/search/lib/styles/index.css';
 import '@react-pdf-viewer/zoom/lib/styles/index.css';
 import './PDFReader.css';
 
-const PDFReader = ({ url, onPageChange, documentId, currentPageContentChanged, toggleTranslatePosition, isTranslateOnRight }) => {
+const PDFReader = ({ url, onPageChange, documentId, currentPageContentChanged, toggleTranslatePosition, isTranslateOnRight, isolatedChatBoxRef }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isDraggingVertical, setIsDraggingVertical] = useState(false);
   const [isDraggingHorizontal, setIsDraggingHorizontal] = useState(false);
@@ -202,7 +202,11 @@ const PDFReader = ({ url, onPageChange, documentId, currentPageContentChanged, t
     setTab('chatbox');
     setShowMenu(false);
     setTimeout(() => {
-      chatBoxRef.current?.handleTranslate(text);
+      if (isolatedChatBoxRef.current) {
+        isolatedChatBoxRef.current.handleTranslate(text);
+      } else {
+        chatBoxRef.current?.handleTranslate(text);
+      }
     }, 100);
   };
 
@@ -210,7 +214,11 @@ const PDFReader = ({ url, onPageChange, documentId, currentPageContentChanged, t
     setTab('chatbox');
     setShowMenu(false);
     setTimeout(() => {
-      chatBoxRef.current?.handleExplain(text);
+      if (isolatedChatBoxRef.current) {
+        isolatedChatBoxRef.current.handleExplain(text);
+      } else {
+        chatBoxRef.current?.handleExplain(text);
+      }
     }, 100);
   };
 
@@ -218,7 +226,11 @@ const PDFReader = ({ url, onPageChange, documentId, currentPageContentChanged, t
     setTab('chatbox');
     setShowMenu(false);
     setTimeout(() => {
-      chatBoxRef.current?.handleAsk(text);
+      if (isolatedChatBoxRef.current) {
+        isolatedChatBoxRef.current.handleAsk(text);
+      } else {
+        chatBoxRef.current?.handleAsk(text);
+      }
     }, 100);
   };
 

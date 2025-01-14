@@ -2,8 +2,8 @@ version: '3.8'
 
 services:
   web:
-    build: .
-    # image: ghcr.io/betterandbetterii/the-reader:latest
+    # build: .
+    image: ghcr.io/betterandbetterii/the-reader:latest
     ports:
       - "8000:8000"
     volumes:

@@ -39,7 +39,7 @@ ENV DJANGO_SETTINGS_MODULE=backend.settings
 COPY . .
 
 # 从前端构建阶段复制构建文件
-COPY --from=frontend-builder /frontend/build /app/build
+COPY --from=frontend-builder /build /app/build
 
 # 收集静态文件
 RUN python manage.py collectstatic --noinput

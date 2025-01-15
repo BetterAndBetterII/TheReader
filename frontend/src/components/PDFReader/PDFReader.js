@@ -176,7 +176,10 @@ const PDFReader = ({ url, onPageChange, documentId, currentPageContentChanged, t
   };
 
   useEffect(() => {
-    const handleTextSelection = () => {
+    const handleTextSelection = (e) => {
+      // 阻止默认的浏览器选中菜单
+      e.preventDefault();
+      
       const selection = window.getSelection();
       const text = selection.toString().trim();
       
@@ -194,8 +197,12 @@ const PDFReader = ({ url, onPageChange, documentId, currentPageContentChanged, t
       }
     };
 
+    // 使用 mouseup 和 contextmenu 事件
     document.addEventListener('mouseup', handleTextSelection);
-    return () => document.removeEventListener('mouseup', handleTextSelection);
+    
+    return () => {
+      document.removeEventListener('mouseup', handleTextSelection);
+    };
   }, []);
 
   const handleTranslate = (text) => {

@@ -14,7 +14,7 @@ urlpatterns = [
     path('projects/<int:project_id>/', views.get_project, name='get_project'),
     path('projects/<int:project_id>/collections/', views.list_collections, name='list_collections'),
     path('projects/<int:project_id>/collections/create/', views.create_collection, name='create_collection'),
-    path('projects/<int:project_id>/collections/delete/', views.delete_collection, name='delete_collection'),
+    path('projects/<int:project_id>/collections/delete/<int:collection_id>/', views.delete_collection, name='delete_collection'),
     path('projects/<int:project_id>/collections/<int:collection_id>/', views.get_collection, name='get_collection'),
     # 文档相关的端点
     path('documents/', views.list_documents, name='list_documents'),

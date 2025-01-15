@@ -162,7 +162,7 @@ class ClientPool:
                 
             except Exception as e:
                 last_error = str(e)
-                logger.warning(f"Operation failed on attempt {attempt + 1}: {last_error}")
+                logger.debug(f"Operation failed on attempt {attempt + 1}: {last_error}")
                 
                 # 记录失败并更新客户端状态
                 self.client_status[client].record_failure(last_error)

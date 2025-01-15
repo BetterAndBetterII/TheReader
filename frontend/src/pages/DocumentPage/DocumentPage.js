@@ -254,7 +254,7 @@ const DocumentPage = ({ onViewDocument, permissionChallenge }) => {
 
   const handleDeleteCollection = async () => {
     if (window.confirm('确定要删除该集合吗？集合下所有文档都将被删除！且无法恢复！')) {
-      fetch(`/api/projects/${selectedProject}/collections/delete/`, {
+      fetch(`/api/projects/${selectedProject}/collections/delete/${selectedCollection.id}/`, {
         method: 'POST',
         body: JSON.stringify({ collection_id: selectedCollection.id }),
       }).then(response => {

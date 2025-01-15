@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import logging
+from backend.middleware import get_current_request
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -51,6 +53,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'backend.middleware.RequestMiddleware',
+    'backend.middleware.IPAddressMiddleware',
+    'backend.middleware.RequestLoggingMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -103,18 +108,78 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+class RequestBasicInformation(logging.Filter):
+    def filter(self, record):
+        ip = None
+        upn = None
+
+        request = get_current_request()
+        if request:
+            # 收集IP
+            x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+            if x_forwarded_for:
+                ip = x_forwarded_for.split(",")[0]
+            else:
+                ip = request.META.get("REMOTE_ADDR")
+
+            # 收集用户upn
+            user_claims = request.session.get("auth_claims", None)
+            if user_claims:
+                upn = user_claims["oid"]
+
+        # 追加日志信息
+        if ip:
+            record.ip = ip
+        else:
+            record.ip = "N/A"
+        if upn:
+            record.upn = upn
+        else:
+            record.upn = "N/A"
+            
+        # 过滤器允许数据通过
+        return True
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'filters': {
+        'request_info': {
+            '()': 'backend.settings.RequestBasicInformation',
+        },
+    },
+    'formatters': {
+        'verbose': {
+            'format': '{asctime} {levelname} {ip:->15} {upn:->20} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{asctime} {levelname} {message}',
+            'style': '{'
+        }
+    },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
             'level': 'DEBUG',
+            'formatter': 'simple',
+            'filters': ['request_info'],
         },
+        'file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': BASE_DIR / 'persist' / 'debug.log',
+            'level': 'INFO',
+            'formatter': 'verbose',
+            'mode': 'a',
+            'encoding': 'utf-8',
+            'maxBytes': 15 * 1024 * 1024, # 15MB
+            'backupCount': 5,
+            'filters': ['request_info'],
+        }
     },
     'loggers': {
         '': {
-            'handlers': ['console'],
+            'handlers': ['console', 'file'],
             'level': 'DEBUG',
             'propagate': False,
         },

@@ -18,12 +18,7 @@ const ReaderPage = ({ documentId, permissionChallenge }) => {
     const fetchPdfUrl = async () => {
       if (!documentId) return;
       try {
-        const response = await fetch(`/api/documents/view/${documentId}.pdf`);
-        if (response.ok) {
-          const blob = await response.blob();
-          const url = URL.createObjectURL(blob);
-          setPdfUrl(url);
-        }
+        setPdfUrl(`/api/documents/view/${documentId}.pdf`);
       } catch (error) {
         console.error('Error fetching PDF:', error);
       }

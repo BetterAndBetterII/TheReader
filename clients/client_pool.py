@@ -139,9 +139,10 @@ class ClientPool:
         
         for attempt in range(self.max_retries):
             client = self._select_client()
+
+            time.sleep(self.retry_delay * attempt)
             
             if client is None:
-                time.sleep(self.retry_delay)
                 continue
                 
             try:

@@ -143,3 +143,16 @@
   flex: 1;
   overflow-y: auto;
 }
+
+.github-link {
+  color: #333;
+  margin-left: 15px;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.github-link:hover {
+  color: #666;
+}

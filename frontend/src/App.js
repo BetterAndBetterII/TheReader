@@ -6,6 +6,7 @@ import DocumentPage from './pages/DocumentPage/DocumentPage';
 import LatexPage from './pages/LatexPage/LatexPage';
 import axios from 'axios';
 import { clarity } from 'react-microsoft-clarity';
+import { FaGithub } from 'react-icons/fa';
 
 clarity.init("pr8nj6r20z");
 
@@ -117,6 +118,14 @@ function App() {
           >
             {isSuperuser ? '登出' : '登录'}
           </button>
+          <a
+            href="https://github.com/BetterAndBetterII/TheReader"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="github-link"
+          >
+            <FaGithub size={28} />
+          </a>
         </div>
       </nav>
 

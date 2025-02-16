@@ -136,7 +136,7 @@ class ClientPool:
             return random.choice(clients_by_load[min_load])
 
     def execute_with_retry(self,
-                          operation: Callable,
+                          operation: str,
                           *args,
                           **kwargs) -> Dict[str, Any]:
         """
@@ -158,10 +158,8 @@ class ClientPool:
                 # 更新客户端状态
                 self.client_status[client].increment_active()
                 
-                # 获取实际方法名
-                method_name = operation.__name__
                 # 获取客户端对应的方法
-                actual_method = getattr(client, method_name)
+                actual_method = getattr(client, operation)
                 
                 # 执行操作
                 result = actual_method(*args, **kwargs)

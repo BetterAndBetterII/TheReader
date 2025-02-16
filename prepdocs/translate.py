@@ -13,7 +13,7 @@ You are a professional translator, translate the following text into {target_lan
 
 def process_single_translation(client_pool, page_content: str, target_language: str) -> Page:
     response = client_pool.execute_with_retry(
-        GeminiClient.chat_with_text, 
+        "chat_with_text", 
         f"{get_translate_system_prompt(target_language)}\n{page_content}"
     )
     if 'error' in response:

@@ -132,9 +132,9 @@ def gemini_chat_image(request):
     method_name = 'chat_with_text' if not image_data else 'chat_with_image'
     
     if not image_data:
-        response = client_pool.execute_with_retry(lambda c: getattr(c, method_name)(prompt))
+        response = client_pool.execute_with_retry(method_name, prompt)
     else:
-        response = client_pool.execute_with_retry(lambda c: getattr(c, method_name)(prompt, image_data, image_type))
+        response = client_pool.execute_with_retry(method_name, prompt, image_data, image_type)
         
     if 'error' in response:
         return JsonResponse({
@@ -590,7 +590,7 @@ def generate_mindmap(request):
     client_pool: ClientPool = global_env['gemini_client_pool']
     if not client_pool._get_clients():
         return JsonResponse({'error': 'No GeminiClient available. Please check your API keys and permissions.'}, status=500)
-    response = client_pool.execute_with_retry(GeminiClient.chat_with_text, f"{system_prompt}\n\n{user_prompt}")
+    response = client_pool.execute_with_retry("chat_with_text", f"{system_prompt}\n\n{user_prompt}")
 
     # 去掉markdown的代码块
     clean_response = response['text'].replace('```', '').replace('```markdown', '')
@@ -626,8 +626,8 @@ def parse_latex(request):
         results = ""
         for page in section.pages:
             response = client_pool.execute_with_retry(
-                lambda c: c.chat_with_image(prompt, page.file_path, "path")
-            )
+                "chat_with_image", prompt, page.file_path, "path"
+                )
             latex = response['text']
             if latex.startswith('```'):
                 latex = "\n".join(latex.split('\n')[1:-1])
@@ -637,8 +637,8 @@ def parse_latex(request):
         # 将图片转换为base64编码
         base64_file = base64.b64encode(file.read()).decode('utf-8')
         response = client_pool.execute_with_retry(
-            lambda c: c.chat_with_image(prompt, base64_file, "base64")
-        )
+            "chat_with_image", prompt, base64_file, "base64"
+            )
         latex = response['text']
         if latex.startswith('```'):
             latex = "\n".join(latex.split('\n')[1:-1])

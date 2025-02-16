@@ -33,7 +33,7 @@ class OpenAIClient(GeminiClient):
         """
         try:
             messages = [
-                {"role": "system", "content": "You are a helpful assistant"},
+                {"role": "developer", "content": "You are a helpful assistant"},
                 {"role": "user", "content": message},
             ]
             request_params = {
@@ -42,7 +42,9 @@ class OpenAIClient(GeminiClient):
             }
             response = self.client.chat.completions.create(**request_params)
             self.update_api_key_usage()
-            return response.choices[0].message.content
+            return {
+                "text": response.choices[0].message.content
+            }
         
         except Exception as e:
             self.update_api_key_error(str(e))
@@ -54,50 +56,53 @@ class OpenAIClient(GeminiClient):
         注：处理完图片后，将其作为文本传递
         """
         try:
-            # ...图片处理代码保持不变...
+            # 将不同来源的图片统一转换为 base64 URL
             if image_type == "base64":
-                if ',' in image_data:
-                    prefix, image_data = image_data.split(',', 1)
-                    if not any(valid_prefix in prefix.lower() for valid_prefix in ['image/jpeg', 'image/png', 'image/gif']):
-                        return {"error": "不支持的图片格式，请使用 JPEG、PNG 或 GIF 格式"}
-                padding = 4 - (len(image_data) % 4) if len(image_data) % 4 != 0 else 0
-                image_data += '=' * padding
-                try:
-                    image_bytes = base64.b64decode(image_data)
-                    if len(image_bytes) == 0:
-                        return {"error": "Base64解码后的数据为空"}
-                except Exception as e:
-                    return {"error": f"Base64解码错误: {str(e)}"}
-                try:
-                    image = Image.open(io.BytesIO(image_bytes))
-                    if image.format not in ['JPEG', 'PNG', 'GIF']:
-                        return {"error": f"不支持的图片格式: {image.format}，请使用 JPEG、PNG 或 GIF 格式"}
-                    image.load()
-                except Exception as e:
-                    return {"error": f"图片解析错误: {str(e)}，请确保提供了有效的图片数据"}
+                # 如果已经是data URI格式，直接使用
+                if image_data.startswith('data:image/'):
+                    image_url = image_data
+                else:
+                    # 处理纯base64字符串
+                    if ',' in image_data:
+                        # 如果包含data URI前缀，提取base64部分
+                        prefix, image_data = image_data.split(',', 1)
+                    # 添加padding
+                    padding = 4 - (len(image_data) % 4) if len(image_data) % 4 != 0 else 0
+                    image_data += '=' * padding
+                    # 构造完整的data URI
+                    image_url = f"data:image/jpeg;base64,{image_data}"
+            
             elif image_type == "path":
-                try:
-                    image = Image.open(image_data)
-                    if image.format not in ['JPEG', 'PNG', 'GIF']:
-                        return {"error": f"不支持的图片格式: {image.format}，请使用 JPEG、PNG 或 GIF 格式"}
-                    image.load()
-                except Exception as e:
-                    return {"error": f"图片文件打开错误: {str(e)}"}
+                # 读取文件并转换为base64 URL
+                with open(image_data, 'rb') as img_file:
+                    img_data = base64.b64encode(img_file.read()).decode()
+                    image_url = f"data:image/jpeg;base64,{img_data}"
             else:
-                return {"error": f"不支持的图片类型: {image_type}，请使用 base64 或 path 类型"}
-
+                return {"error": "不支持的图片类型，请使用 base64 或 path"}
+        
             messages = [
-                {"role": "system", "content": "You are a helpful assistant"},
-                {"role": "user", "content": message},
-                {"role": "user", "content": image_data},
+                {
+                    "role": "user", "content": [
+                        {"type": "text", "text": message},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": image_url
+                            }
+                        }
+                    ]
+                }
             ]
+
             request_params = {
                 "model": self.vision_model,
                 "messages": messages,
             }
             response = self.client.chat.completions.create(**request_params)
             self.update_api_key_usage()
-            return response.choices[0].message.content
+            return {
+                "text": response.choices[0].message.content
+            }
         except Exception as e:
             self.update_api_key_error(str(e))
             return {"error": str(e)}

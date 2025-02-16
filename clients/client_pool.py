@@ -92,10 +92,10 @@ class ClientPool:
         for api_key in api_keys:
             if (api_key.api_type == 'gemini'):
                 clients.append(GeminiClient(api_key.key, api_key.base_url))
-                print("Gemini client added")
+                logger.debug("Gemini client added")
             elif (api_key.api_type == 'openai'):
                 clients.append(OpenAIClient(api_key.key, api_key.base_url))
-                print("OpenAI client added")
+                logger.debug("OpenAI client added")
 
         logger.debug("*" * 25 + f"Found {len(clients)} clients" + "*" * 25)
         logger.debug(f"Client API keys: {' '.join([client.api_key[-8:] for client in clients])}")

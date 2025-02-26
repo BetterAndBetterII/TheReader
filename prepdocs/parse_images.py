@@ -12,7 +12,7 @@ You are a markdown parser, convert images to markdown format. Format tables usin
 
 def process_single_page(client_pool, page):
     response = client_pool.execute_with_retry(
-        GeminiClient.chat_with_image, 
+        "chat_with_image", 
         get_parse_markdown_system_prompt(), 
         page.file_path, 
         'path'
@@ -24,7 +24,7 @@ def process_single_page(client_pool, page):
 def parse_images(section):
     client_pool: ClientPool = global_env['gemini_client_pool']
     if not client_pool._get_clients():
-        raise ValueError("No GeminiClient available. Please check your API keys.")
+        raise ValueError("No Client available. Please check your API keys.")
     result_section = Section(
         title=section.title,
         pages=[None] * len(section.pages),  # 预分配空间以保持顺序

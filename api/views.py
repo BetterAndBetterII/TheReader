@@ -4,6 +4,7 @@ from django.http import JsonResponse, FileResponse
 import json
 from backend.setup_env import global_env
 from clients.gemini_client import GeminiClient
+from clients.openai_client import OpenAIClient
 from clients.client_pool import ClientPool
 from .models import ApiKey, Document, Task, Project, Collection, MindMap
 from pipeline.document_pipeline import DocumentPipeline
@@ -103,9 +104,16 @@ def gemini_chat(request):
     prompt = json_data.get('prompt')
     client_pool: ClientPool = global_env['gemini_client_pool']
     if not client_pool._get_clients():
-        return JsonResponse({'error': 'No GeminiClient available. Please check your API keys and permissions.'}, status=500)
-    gemini_client: GeminiClient = client_pool._select_client()
-    response = gemini_client.chat_with_text(prompt)
+        return JsonResponse({'error': 'No Client available. Please check your API keys and permissions.'}, status=500)
+    
+    client = client_pool._select_client()
+    if client is None:
+        return JsonResponse({'error': 'No available client'}, status=500)
+        
+    # 动态获取并调用方法
+    chat_method = getattr(client, 'chat_with_text')
+    response = chat_method(prompt)
+    
     if 'error' in response:
         return JsonResponse({'error': response['error']}, status=500)
     return JsonResponse({'response': response['text']})
@@ -118,11 +126,16 @@ def gemini_chat_image(request):
     image_type = json_data.get('image_type', 'base64')
     client_pool: ClientPool = global_env['gemini_client_pool']
     if not client_pool._get_clients():
-        return JsonResponse({'error': 'No GeminiClient available. Please check your API keys and permissions.'}, status=500)
+        return JsonResponse({'error': 'No Client available. Please check your API keys and permissions.'}, status=500)
+    
+    # 根据是否有图片数据来决定使用哪个方法
+    method_name = 'chat_with_text' if not image_data else 'chat_with_image'
+    
     if not image_data:
-        response = client_pool.execute_with_retry(GeminiClient.chat_with_text, prompt)
+        response = client_pool.execute_with_retry(method_name, prompt)
     else:
-        response = client_pool.execute_with_retry(GeminiClient.chat_with_image, prompt, image_data, image_type)
+        response = client_pool.execute_with_retry(method_name, prompt, image_data, image_type)
+        
     if 'error' in response:
         return JsonResponse({
             'error': response['error']
@@ -132,18 +145,25 @@ def gemini_chat_image(request):
     })
 
 def add_api_key(request):
-    json_data = json.loads(request.body)
-    key = json_data.get('key')
-    base_url = json_data.get('base_url', 'https://api.betterspace.top')
-    # make test
-    gemini_client = GeminiClient(api_key=key, base_url=base_url)
-    response = gemini_client.chat_with_text('Hello, world!')
-    if 'error' in response:
-        return JsonResponse({'error': response['error']}, status=500)
-    
-    ApiKey.objects.create(key=key, base_url=base_url)
-    global_env['gemini_client_pool'] = ClientPool()
-    return JsonResponse({'message': 'API key added successfully'})
+        json_data = json.loads(request.body)
+        key = json_data.get('key')
+        base_url = json_data.get('base_url', 'https://api.betterspace.top')
+        api_type = json_data.get('api_type', 'gemini')  # 默认值为 gemini
+        
+        # 选择合适的 Client 进行测试
+        if api_type == 'gemini':
+            client = GeminiClient(api_key=key, base_url=base_url)
+        else:
+            client = OpenAIClient(api_key=key, base_url=base_url)
+        
+        response = client.chat_with_text('Hello, world!')
+        if 'error' in response:
+            return JsonResponse({'error': response['error']}, status=500)
+        
+        ApiKey.objects.create(key=key, base_url=base_url, api_type=api_type)
+        global_env['gemini_client_pool'] = ClientPool()
+        return JsonResponse({'message': 'API key added successfully'})
+
 
 @require_use_api_permission
 def list_api_keys(request):
@@ -570,7 +590,7 @@ def generate_mindmap(request):
     client_pool: ClientPool = global_env['gemini_client_pool']
     if not client_pool._get_clients():
         return JsonResponse({'error': 'No GeminiClient available. Please check your API keys and permissions.'}, status=500)
-    response = client_pool.execute_with_retry(GeminiClient.chat_with_text, f"{system_prompt}\n\n{user_prompt}")
+    response = client_pool.execute_with_retry("chat_with_text", f"{system_prompt}\n\n{user_prompt}")
 
     # 去掉markdown的代码块
     clean_response = response['text'].replace('```', '').replace('```markdown', '')
@@ -590,11 +610,13 @@ import tempfile
 @require_use_api_permission
 def parse_latex(request):
     prompt = "You are a helpful assistant that can convert all content in the image to prettified markdown text in natural reading order. You are allow to use list, table, equation, etc. You must use $..$ or $$..$$ to wrap the formulas. Do not output any other text. Please convert the following image to markdown text: "
-    gemini_client_pool: ClientPool = global_env['gemini_client_pool']
-    if not gemini_client_pool._get_clients():
-        return JsonResponse({'error': 'No GeminiClient available. Please check your API keys and permissions.'}, status=500)
+    client_pool: ClientPool = global_env['gemini_client_pool']
+    if not client_pool._get_clients():
+        return JsonResponse({'error': 'No Client available. Please check your API keys and permissions.'}, status=500)
+    
     file = request.FILES.get('file')
     file_type = request.POST.get('type')
+    
     if file_type == 'application/pdf':
         file_path = tempfile.mktemp(suffix=".pdf")
         with open(file_path, 'wb') as f:
@@ -603,16 +625,20 @@ def parse_latex(request):
         section = ingester.process_document(file_path, "latex.pdf")
         results = ""
         for page in section.pages:
-            response = gemini_client_pool.execute_with_retry(GeminiClient.chat_with_image, prompt, page.file_path, "path")
+            response = client_pool.execute_with_retry(
+                "chat_with_image", prompt, page.file_path, "path"
+                )
             latex = response['text']
             if latex.startswith('```'):
                 latex = "\n".join(latex.split('\n')[1:-1])
             results += f"{latex}\n\n"
         return JsonResponse({'message': '公式解析成功', 'markdown': results})
     elif file_type in ['image/png', 'image/jpg', 'image/jpeg']:
-        # 将二进制文件转化为base64
+        # 将图片转换为base64编码
         base64_file = base64.b64encode(file.read()).decode('utf-8')
-        response = gemini_client_pool.execute_with_retry(GeminiClient.chat_with_image, prompt, base64_file, "base64")
+        response = client_pool.execute_with_retry(
+            "chat_with_image", prompt, base64_file, "base64"
+            )
         latex = response['text']
         if latex.startswith('```'):
             latex = "\n".join(latex.split('\n')[1:-1])

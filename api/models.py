@@ -19,6 +19,8 @@ Task任务是针对文档的，每个文档对应有一个Task
  |    |--- 文档
 """
 
+from django.db import models
+
 class ApiKey(models.Model):
     key = models.CharField(max_length=255, unique=True)
     base_url = models.CharField(max_length=255, default='https://api.betterspace.top')
@@ -29,8 +31,11 @@ class ApiKey(models.Model):
     last_used_at = models.DateTimeField(null=True, blank=True)
     last_error_message = models.TextField(null=True, blank=True)
 
+    # 直接使用 CharField，而不限制 choices
+    api_type = models.CharField(max_length=10, default='gemini', help_text='API 类型 (gemini 或 openai)')
+
     def __str__(self):
-        return self.key[:10] + '...'
+        return f"{self.api_type.upper()} - {self.key[:10]}..."
 
 class Task(models.Model):
     # 任务状态选项

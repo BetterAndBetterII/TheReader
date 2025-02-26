@@ -6,6 +6,7 @@ import logging
 from concurrent.futures import ThreadPoolExecutor
 from api.models import ApiKey
 from clients.gemini_client import GeminiClient
+from clients.openai_client import OpenAIClient
 import asyncio
 
 logging.basicConfig(level=logging.INFO)
@@ -87,7 +88,15 @@ class ClientPool:
         # 从数据库中获取所有API密钥
         api_keys = ApiKey.objects.all()
         # 创建GeminiClient实例
-        clients = [GeminiClient(api_key.key, api_key.base_url) for api_key in api_keys]
+        clients = []
+        for api_key in api_keys:
+            if (api_key.api_type == 'gemini'):
+                clients.append(GeminiClient(api_key.key, api_key.base_url))
+                logger.debug("Gemini client added")
+            elif (api_key.api_type == 'openai'):
+                clients.append(OpenAIClient(api_key.key, api_key.base_url))
+                logger.debug("OpenAI client added")
+
         logger.debug("*" * 25 + f"Found {len(clients)} clients" + "*" * 25)
         logger.debug(f"Client API keys: {' '.join([client.api_key[-8:] for client in clients])}")
 
@@ -127,9 +136,9 @@ class ClientPool:
             return random.choice(clients_by_load[min_load])
 
     def execute_with_retry(self,
-                               operation: Callable,
-                               *args,
-                               **kwargs) -> Dict[str, Any]:
+                          operation: str,
+                          *args,
+                          **kwargs) -> Dict[str, Any]:
         """
         执行操作，包含重试逻辑
         :param operation: 要执行的操作函数
@@ -149,8 +158,11 @@ class ClientPool:
                 # 更新客户端状态
                 self.client_status[client].increment_active()
                 
+                # 获取客户端对应的方法
+                actual_method = getattr(client, operation)
+                
                 # 执行操作
-                result = operation(client, *args, **kwargs)
+                result = actual_method(*args, **kwargs)
                 
                 # 如果成功，重置错误计数
                 self.client_status[client].decrement_active()
@@ -202,4 +214,4 @@ class ClientPool:
         关闭客户端池
         """
         self.thread_pool.shutdown(wait=True)
-        logger.info("ClientPool shutdown complete") 
+        logger.info("ClientPool shutdown complete")

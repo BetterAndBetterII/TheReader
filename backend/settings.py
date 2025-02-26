@@ -140,6 +140,11 @@ class RequestBasicInformation(logging.Filter):
         # 过滤器允许数据通过
         return True
 
+import os
+LOG_DIR = BASE_DIR / 'persist'
+if not LOG_DIR.exists():
+    os.makedirs(LOG_DIR, exist_ok=True)  # 仅当路径不存在时才创建
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

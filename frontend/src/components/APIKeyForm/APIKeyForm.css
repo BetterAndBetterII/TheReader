@@ -22,19 +22,40 @@
 .form-group label {
     font-weight: 500;
     color: #333;
+    margin-bottom: 8px;
 }
 
-.form-group input {
+/* 统一所有输入框和选择框的基础样式 */
+.form-group input,
+.form-group .MuiSelect-select {
     padding: 12px;
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 14px;
+    background-color: white;
+    color: #333;
+    width: 100%;
+    box-sizing: border-box;
     transition: border-color 0.2s;
 }
 
-.form-group input:focus {
+/* 移除 Material-UI 默认样式 */
+.MuiOutlinedInput-notchedOutline {
+    display: none !important;
+}
+
+.MuiInputBase-root {
+    border: none !important;
+    background: none !important;
+}
+
+/* 统一焦点样式 */
+.form-group input:focus,
+.form-group .MuiSelect-select:focus,
+.Mui-focused {
     outline: none;
     border-color: #1976d2;
+    box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
 }
 
 .submit-button {

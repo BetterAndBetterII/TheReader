@@ -5,6 +5,7 @@ urlpatterns = [
     path('gemini_chat', views.gemini_chat, name='gemini_chat'),
     path('gemini_chat_image', views.gemini_chat_image, name='gemini_chat_image'),
     path('add_api_key', views.add_api_key, name='add_api_key'),
+    path('upload_api_keys', views.upload_api_keys, name='upload_api_keys'),
     path('list_api_keys', views.list_api_keys, name='list_api_keys'),
     path('delete_api_key', views.delete_api_key, name='delete_api_key'),
     # 项目相关的端点

@@ -19,6 +19,8 @@ class DocumentPipeline:
         self.task_queue = queue.Queue()
         self.thread_pool = ThreadPoolExecutor(max_workers=max_workers)
         self.is_running = True
+        # 删除之前未完成的任务
+        Task.objects.filter(status=Task.Status.PENDING).delete()
         # 启动守护线程处理任务
         self.daemon_thread = threading.Thread(target=self._process_queue, daemon=True)
         self.daemon_thread.start()

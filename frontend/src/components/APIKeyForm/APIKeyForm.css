@@ -102,3 +102,68 @@
     align-items: center;
     margin-bottom: 10px;
 }
+
+.form-divider {
+    text-align: center;
+    margin: 20px 0;
+    position: relative;
+    color: #666;
+}
+
+.form-divider::before,
+.form-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 45%;
+    height: 1px;
+    background-color: #ddd;
+}
+
+.form-divider::before {
+    left: 0;
+}
+
+.form-divider::after {
+    right: 0;
+}
+
+.file-input {
+    border: 2px dashed #ddd !important;
+    padding: 20px !important;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.file-input:hover {
+    border-color: #1976d2 !important;
+}
+
+.file-hint {
+    color: #666;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.upload-button {
+    padding: 12px 24px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.2s;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.upload-button:hover:not(:disabled) {
+    background-color: #388e3c;
+}
+
+.upload-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}

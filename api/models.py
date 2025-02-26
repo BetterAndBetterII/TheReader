@@ -23,7 +23,7 @@ from django.db import models
 
 class ApiKey(models.Model):
     key = models.CharField(max_length=255, unique=True)
-    base_url = models.CharField(max_length=255, default='https://api.betterspace.top')
+    base_url = models.CharField(max_length=255, default='https://gemini.geid.top/')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

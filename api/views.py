@@ -147,7 +147,7 @@ def gemini_chat_image(request):
 def add_api_key(request):
         json_data = json.loads(request.body)
         key = json_data.get('key')
-        base_url = json_data.get('base_url', 'https://api.betterspace.top')
+        base_url = json_data.get('base_url', 'https://gemini.geid.top/')
         api_type = json_data.get('api_type', 'gemini')  # 默认值为 gemini
         
         # 选择合适的 Client 进行测试
@@ -164,6 +164,45 @@ def add_api_key(request):
         global_env['gemini_client_pool'] = ClientPool()
         return JsonResponse({'message': 'API key added successfully'})
 
+def upload_api_keys(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    api_type = request.POST.get('api_type', 'gemini')
+    base_url = request.POST.get('base_url', 'https://gemini.geid.top/')
+    file = request.FILES.get('file')
+    if not file:
+        return JsonResponse({'error': 'No file uploaded'}, status=400)
+    
+    # 读取文件内容
+    file_content = file.read().decode('utf-8')
+    # 按行分割
+    lines = file_content.split('\n')
+    for line in lines:
+        line = line.strip()
+
+    # 创建API密钥
+    api_keys = []
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        api_keys.append(line)
+    
+    # 批量测试
+    for api_key in api_keys:
+        # 检查是否已经存在
+        if ApiKey.objects.filter(key=api_key).exists():
+            continue
+        client = GeminiClient(api_key=api_key, base_url=base_url)
+        response = client.chat_with_text('Hello, world!')
+        if 'error' in response:
+            return JsonResponse({'error': response['error']}, status=500)
+        else:
+            ApiKey.objects.create(key=api_key, api_type=api_type)
+    # refresh gemini client pool
+    global_env['gemini_client_pool'] = ClientPool()
+    return JsonResponse({'message': 'All API keys added successfully'})
 
 @require_use_api_permission
 def list_api_keys(request):

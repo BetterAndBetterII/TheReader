@@ -9,6 +9,7 @@ const APIKeyForm = ({ onAdd }) => {
     const [apiType, setApiType] = useState('gemini');
     const [status, setStatus] = useState({ type: '', message: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [file, setFile] = useState(null);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -35,6 +36,47 @@ const APIKeyForm = ({ onAdd }) => {
             }
         } catch (error) {
             setStatus({ type: 'error', message: '提交失败，请稍后重试' });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleFileUpload = async (e) => {
+        e.preventDefault();
+        if (!file) {
+            setStatus({ type: 'error', message: '请选择文件' });
+            return;
+        }
+
+        setIsSubmitting(true);
+        setStatus({ type: '', message: '' });
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('apiType', apiType);
+        if (baseUrl.trim()) {
+            formData.append('base_url', baseUrl.trim());
+        }
+
+        try {
+            const response = await axios.post('/api/upload_api_keys', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            if (response.data.error) {
+                setStatus({ type: 'error', message: response.data.error });
+            } else {
+                setStatus({ type: 'success', message: '批量导入成功！' });
+                onAdd();
+                setFile(null);
+                // 重置文件输入
+                const fileInput = document.getElementById('file-upload');
+                if (fileInput) fileInput.value = '';
+            }
+        } catch (error) {
+            setStatus({ type: 'error', message: '文件上传失败，请稍后重试' });
         } finally {
             setIsSubmitting(false);
         }
@@ -93,6 +135,28 @@ const APIKeyForm = ({ onAdd }) => {
                 >
                     {isSubmitting ? '提交中...' : '提交'}
                 </button>
+
+                <div className="form-divider">或</div>
+
+                <div className="form-group">
+                    <label htmlFor="file-upload">批量导入API密钥（.txt文件）</label>
+                    <input
+                        id="file-upload"
+                        type="file"
+                        accept=".txt"
+                        onChange={(e) => setFile(e.target.files[0])}
+                        className="file-input"
+                    />
+                    <small className="file-hint">每行一个API密钥</small>
+                    <button 
+                        type="button"
+                        onClick={handleFileUpload}
+                        className="upload-button"
+                        disabled={isSubmitting || !file}
+                    >
+                        {isSubmitting ? '上传中...' : '上传文件'}
+                    </button>
+                </div>
             </form>
         </div>
     );

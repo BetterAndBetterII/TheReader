@@ -147,6 +147,7 @@ class ClientPool:
         last_error = None
         
         for attempt in range(self.max_retries):
+            self.clients = self.gather_clients()
             client = self._select_client()
 
             time.sleep(self.retry_delay * attempt)

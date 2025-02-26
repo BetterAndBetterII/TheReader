@@ -1,4 +1,4 @@
-FROM node:18 AS frontend-builder
+FROM node:18@sha256:ba756f198b4b1e0114b53b23121c8ae27f7ae4d5d95ca4a0554b0649cc9c7dcf AS frontend-builder
 
 # 设置前端构建工作目录
 WORKDIR /frontend
@@ -8,7 +8,7 @@ COPY frontend/ .
 RUN npm run build
 
 # 使用多阶段构建，创建基础镜像层
-FROM python:3.11-slim AS base
+FROM python:3.11-slim@sha256:614c8691ab74150465ec9123378cd4dde7a6e57be9e558c3108df40664667a4c AS base
 
 # 安装系统依赖
 RUN apt-get update && apt-get install -y \

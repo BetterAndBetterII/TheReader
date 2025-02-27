@@ -9,7 +9,7 @@ from django.utils import timezone
 from clients.gemini_client import GeminiClient
 
 class OpenAIClient(GeminiClient):
-    def __init__(self, api_key=None, base_url=None, model="gpt-4o"):
+    def __init__(self, api_key=None, base_url=None, model="gemini-1.5-flash"):
         self.api_key = api_key if api_key else os.getenv('OPENAI_API_KEY')
         self.base_url = base_url if base_url else os.getenv('OPENAI_API_BASE', "https://api.openai.com/v1")
         
@@ -23,7 +23,7 @@ class OpenAIClient(GeminiClient):
         
         self.text_model = model
         self.vision_model = model
-        
+
 
     def chat_with_text(self, message) -> dict:
         """
@@ -33,7 +33,7 @@ class OpenAIClient(GeminiClient):
         """
         try:
             messages = [
-                {"role": "developer", "content": "You are a helpful assistant"},
+                {"role": "system", "content": "You are a helpful assistant"},
                 {"role": "user", "content": message},
             ]
             request_params = {

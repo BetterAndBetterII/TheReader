@@ -148,7 +148,7 @@ def add_api_key(request):
         json_data = json.loads(request.body)
         key = json_data.get('key')
         base_url = json_data.get('base_url', 'https://gemini.geid.top/')
-        api_type = json_data.get('api_type', 'gemini')  # 默认值为 gemini
+        api_type = json_data.get('apiType', 'gemini')  # 默认值为 gemini
         
         # 选择合适的 Client 进行测试
         if api_type == 'gemini':

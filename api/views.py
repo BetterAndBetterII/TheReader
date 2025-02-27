@@ -1,7 +1,12 @@
+import datetime
+
 from asgiref.sync import async_to_sync
 from django.shortcuts import render
 from django.http import JsonResponse, FileResponse
 import json
+
+from django.utils.timezone import localtime
+
 from backend.setup_env import global_env
 from clients.gemini_client import GeminiClient
 from clients.openai_client import OpenAIClient
@@ -211,8 +216,8 @@ def list_api_keys(request):
         'key': api_key.key.replace(api_key.key[-24:], '****************'),
         'base_url': api_key.base_url,
         'counter': api_key.counter,
-        'created_at': api_key.created_at.strftime('%Y-%m-%d %H:%M:%S') if api_key.created_at else None,
-        'last_used_at': api_key.last_used_at.strftime('%Y-%m-%d %H:%M:%S') if api_key.last_used_at else None,
+        'created_at': localtime(api_key.created_at).strftime('%Y-%m-%d %H:%M:%S') if api_key.created_at else None,
+        'last_used_at': localtime(api_key.last_used_at).strftime('%Y-%m-%d %H:%M:%S') if api_key.last_used_at else None,
         'last_error_message': api_key.last_error_message
     } for api_key in api_keys]})
 

@@ -39,25 +39,6 @@
     transition: border-color 0.2s;
 }
 
-/* 移除 Material-UI 默认样式 */
-.MuiOutlinedInput-notchedOutline {
-    display: none !important;
-}
-
-.MuiInputBase-root {
-    border: none !important;
-    background: none !important;
-}
-
-/* 统一焦点样式 */
-.form-group input:focus,
-.form-group .MuiSelect-select:focus,
-.Mui-focused {
-    outline: none;
-    border-color: #1976d2;
-    box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
-}
-
 .submit-button {
     padding: 12px 24px;
     background-color: #1976d2;

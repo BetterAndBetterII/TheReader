@@ -128,3 +128,13 @@ class GeminiClient:
             return
         self.api_key_model.last_error_message = error_message
         self.api_key_model.save()
+
+    def __hash__(self):
+        # 只使用 api_key 计算哈希值
+        return hash(self.api_key)
+
+    def __eq__(self, other):
+        # 确保比较时只比较 api_key
+        if not isinstance(other, GeminiClient):
+            return False
+        return self.api_key == other.api_key

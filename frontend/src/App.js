@@ -14,6 +14,7 @@ function App() {
   const [documentId, setDocumentId] = useState(null);
   const [isSuperuser, setIsSuperuser] = useState(false);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [currentPage, setCurrentPage] = useState(() => {
@@ -35,6 +36,15 @@ function App() {
       }
     };
     checkPermission();
+  }, []);
+
+  // 检查是否显示更新提示
+  useEffect(() => {
+    const lastDismissed = localStorage.getItem('updateDialogDismissed');
+    const currentDate = new Date().toDateString();
+    if (lastDismissed !== currentDate) {
+      setShowUpdateDialog(true);
+    }
   }, []);
 
   const handleLogin = async () => {
@@ -79,6 +89,11 @@ function App() {
 
   const permissionChallenge = async () => {
     setShowLoginDialog(true);
+  };
+
+  const handleDismissUpdate = () => {
+    setShowUpdateDialog(false);
+    localStorage.setItem('updateDialogDismissed', new Date().toDateString());
   };
 
   return (
@@ -148,6 +163,19 @@ function App() {
                 setPassword('');
                 setLoginError('');
               }}>取消</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showUpdateDialog && (
+        <div className="login-dialog">
+          <div className="login-dialog-content">
+            <h2>新版本提示</h2>
+            <p>欢迎使用TheReader！现在可以前往 <a href="https://ai.gitfetch.dev" target="_blank" rel="noopener noreferrer">ai.gitfetch.dev</a> 体验The Lab （The Reader 2.0版本）。</p>
+            <div className="login-dialog-buttons">
+              <button onClick={() => window.open('https://ai.gitfetch.dev', '_blank')}>立即体验</button>
+              <button onClick={handleDismissUpdate}>继续使用</button>
             </div>
           </div>
         </div>
